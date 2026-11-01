@@ -1,0 +1,701 @@
+/* 初一年级班级球类联赛 —— 赛程 / 比分 / 积分 / 考勤 */
+(function () {
+  'use strict';
+
+  var CFG = window.APP_CONFIG || {};
+  var OWNER = CFG.owner || '';
+  var REPO = CFG.repo || '';
+  var BRANCH = CFG.branch || 'main';
+  var DATA_PATH = CFG.dataPath || 'data/matches.json';
+  var API = 'https://api.github.com';
+  var CONFIGURED = OWNER && OWNER.indexOf('YOUR_') !== 0;
+
+  var TOKEN_KEY = 'bl_token_' + OWNER + '_' + REPO;
+  var UNLOCK_KEY = 'bl_admin_' + OWNER + '_' + REPO;
+
+  var DATA = null;          // 全量数据
+  var VIEW = 'schedule';
+  var SPORT_FILTER = 'all';
+  var token = localStorage.getItem(TOKEN_KEY) || '';
+  var isAdmin = localStorage.getItem(UNLOCK_KEY) === '1';
+  var pending = { matches: {}, rounds: null, schedulePhotos: null }; // 待写入的改动
+  var lastSync = 0;
+
+  var $ = function (s) { return document.querySelector(s); };
+  var app = $('#app');
+  var esc = function (s) {
+    return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
+      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+    });
+  };
+
+  /* ---------- 提示 ---------- */
+  var toastTimer;
+  function toast(msg) {
+    var t = $('#toast');
+    t.textContent = msg;
+    t.hidden = false;
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(function () { t.hidden = true; }, 2200);
+  }
+  function sync(txt) { $('#syncState').textContent = txt; }
+
+  /* ---------- 编码 / 网络 ---------- */
+  function utf8ToB64(str) {
+    var bytes = new TextEncoder().encode(str), bin = '', CH = 0x8000;
+    for (var i = 0; i < bytes.length; i += CH) {
+      bin += String.fromCharCode.apply(null, bytes.subarray(i, i + CH));
+    }
+    return btoa(bin);
+  }
+  function ghHeaders() {
+    var h = { 'Accept': 'application/vnd.github+json' };
+    if (token) h['Authorization'] = 'Bearer ' + token;
+    return h;
+  }
+
+  async function loadData() {
+    sync('加载中…');
+    var bases = [];
+    if (CONFIGURED) {
+      bases.push('https://raw.githubusercontent.com/' + OWNER + '/' + REPO + '/' + BRANCH + '/' + DATA_PATH);
+      bases.push('https://cdn.jsdelivr.net/gh/' + OWNER + '/' + REPO + '@' + BRANCH + '/' + DATA_PATH);
+    }
+    bases.push(DATA_PATH);
+    for (var i = 0; i < bases.length; i++) {
+      try {
+        var r = await fetch(bases[i] + '?t=' + Date.now(), { cache: 'no-store' });
+        if (!r.ok) continue;
+        var j = await r.json();
+        if (!j || !j.matches) continue;
+        DATA = j;
+        lastSync = Date.now();
+        sync('已同步 ' + new Date().toTimeString().slice(0, 5));
+        return true;
+      } catch (e) { /* 换下一个源 */ }
+    }
+    DATA = { version: 1, title: CFG.title || '班级球类联赛', rounds: [], schedulePhotos: [], matches: [] };
+    sync('数据加载失败');
+    return false;
+  }
+
+  async function ghPut(path, contentB64, message, sha) {
+    if (sha === undefined) {
+      var m = await fetch(API + '/repos/' + OWNER + '/' + REPO + '/contents/' + path + '?ref=' + BRANCH, { headers: ghHeaders() });
+      sha = m.ok ? (await m.json()).sha : null;
+    }
+    var body = { message: message, content: contentB64, branch: BRANCH };
+    if (sha) body.sha = sha;
+    var r = await fetch(API + '/repos/' + OWNER + '/' + REPO + '/contents/' + path, {
+      method: 'PUT', headers: Object.assign(ghHeaders(), { 'Content-Type': 'application/json' }),
+      body: JSON.stringify(body)
+    });
+    var j = await r.json().catch(function () { return {}; });
+    if (!r.ok) {
+      var err = new Error((j && j.message) || ('HTTP ' + r.status));
+      err.status = r.status;
+      throw err;
+    }
+    return j;
+  }
+
+  async function saveAll(msg) {
+    if (!CONFIGURED) { toast('未配置 GitHub 仓库，无法保存'); return false; }
+    if (!token) { toast('请先在「录入」页填写 GitHub Token'); return false; }
+    sync('保存中…');
+    try {
+      DATA.updatedAt = new Date().toISOString();
+      await ghPut(DATA_PATH, utf8ToB64(JSON.stringify(DATA, null, 2)), msg || '更新比赛数据');
+      pending = { matches: {}, rounds: null, schedulePhotos: null };
+      lastSync = Date.now();
+      sync('已保存 ' + new Date().toTimeString().slice(0, 5));
+      return true;
+    } catch (e) {
+      if (e.status === 409 || e.status === 422) {
+        toast('远端有更新，正在合并重试…');
+        try {
+          await loadData();
+          applyPending();
+          DATA.updatedAt = new Date().toISOString();
+          await ghPut(DATA_PATH, utf8ToB64(JSON.stringify(DATA, null, 2)), msg || '更新比赛数据');
+          pending = { matches: {}, rounds: null, schedulePhotos: null };
+          sync('已保存 ' + new Date().toTimeString().slice(0, 5));
+          return true;
+        } catch (e2) { toast('保存失败：' + e2.message); sync('保存失败'); return false; }
+      }
+      toast('保存失败：' + e.message);
+      sync('保存失败');
+      return false;
+    }
+  }
+
+  function applyPending() {
+    Object.keys(pending.matches).forEach(function (id) {
+      for (var i = 0; i < DATA.matches.length; i++) {
+        if (DATA.matches[i].id === id) { DATA.matches[i] = pending.matches[id]; break; }
+      }
+    });
+    if (pending.rounds) DATA.rounds = pending.rounds;
+    if (pending.schedulePhotos) DATA.schedulePhotos = pending.schedulePhotos;
+  }
+  function markPending(kind, id, obj) {
+    if (kind === 'match') pending.matches[id] = obj;
+    else pending[kind] = obj;
+  }
+
+  /* ---------- 图片压缩 ---------- */
+  function compressImage(file, maxSide, quality) {
+    return new Promise(function (resolve, reject) {
+      var fr = new FileReader();
+      fr.onload = function () {
+        var img = new Image();
+        img.onload = function () {
+          var w = img.width, h = img.height;
+          var scale = Math.min(1, maxSide / Math.max(w, h));
+          var cw = Math.round(w * scale), ch = Math.round(h * scale);
+          var cv = document.createElement('canvas');
+          cv.width = cw; cv.height = ch;
+          cv.getContext('2d').drawImage(img, 0, 0, cw, ch);
+          resolve(cv.toDataURL('image/jpeg', quality));
+        };
+        img.onerror = reject;
+        img.src = fr.result;
+      };
+      fr.onerror = reject;
+      fr.readAsDataURL(file);
+    });
+  }
+
+  async function uploadPhoto(dataUrl, nameHint) {
+    var b64 = dataUrl.split(',')[1];
+    var path = 'photos/' + nameHint + '-' + Date.now() + '.jpg';
+    await ghPut(path, b64, '上传照片 ' + nameHint);
+    return 'https://raw.githubusercontent.com/' + OWNER + '/' + REPO + '/' + BRANCH + '/' + path;
+  }
+
+  /* ---------- 工具 ---------- */
+  function sportName(s) { return s === 'football' ? '足球' : '篮球'; }
+  function teamName(n) { return n + '班'; }
+  function isThisWeek(dateStr) {
+    if (!dateStr) return false;
+    var d = new Date(dateStr + 'T00:00:00');
+    if (isNaN(d.getTime())) return false;
+    var now = new Date(); now.setHours(0, 0, 0, 0);
+    var off = (now.getDay() + 6) % 7;
+    var mon = new Date(now); mon.setDate(now.getDate() - off);
+    var sun = new Date(mon); sun.setDate(mon.getDate() + 7);
+    return d >= mon && d < sun;
+  }
+  function weekdayOf(dateStr) {
+    if (!dateStr) return '';
+    var d = new Date(dateStr + 'T00:00:00');
+    if (isNaN(d.getTime())) return '';
+    return '周' + '日一二三四五六'.charAt(d.getDay());
+  }
+  function roundMeta(r) {
+    var list = (DATA.rounds || []).filter(function (x) { return x.round === r; });
+    return list[0] || { round: r, date: '', label: '第' + r + '轮' };
+  }
+
+  /* ---------- 积分计算 ---------- */
+  function standings(sport) {
+    var P = CFG.points || { win: 3, draw: 1, lose: 0 };
+    var teams = {};
+    (DATA.matches || []).forEach(function (m) {
+      if (m.sport !== sport) return;
+      teams[m.a] = true; teams[m.b] = true;
+    });
+    var rows = Object.keys(teams).map(Number).sort(function (a, b) { return a - b; }).map(function (n) {
+      return { cls: n, p: 0, w: 0, d: 0, l: 0, gf: 0, ga: 0, gd: 0, pts: 0 };
+    });
+    var idx = {};
+    rows.forEach(function (r, i) { idx[r.cls] = i; });
+    (DATA.matches || []).forEach(function (m) {
+      if (m.sport !== sport || m.status !== 'finished') return;
+      if (m.scoreA == null || m.scoreB == null) return;
+      var A = rows[idx[m.a]], B = rows[idx[m.b]];
+      if (!A || !B) return;
+      A.p++; B.p++;
+      A.gf += m.scoreA; A.ga += m.scoreB;
+      B.gf += m.scoreB; B.ga += m.scoreA;
+      if (m.scoreA > m.scoreB) { A.w++; B.l++; A.pts += P.win; B.pts += P.lose; }
+      else if (m.scoreA < m.scoreB) { B.w++; A.l++; B.pts += P.win; A.pts += P.lose; }
+      else { A.d++; B.d++; A.pts += P.draw; B.pts += P.draw; }
+    });
+    rows.forEach(function (r) { r.gd = r.gf - r.ga; });
+    rows.sort(function (a, b) {
+      return b.pts - a.pts || b.gd - a.gd || b.gf - a.gf || a.cls - b.cls;
+    });
+    return rows;
+  }
+
+  /* ---------- 渲染：赛程 ---------- */
+  function scheduleHTML() {
+    var rounds = {};
+    (DATA.matches || []).forEach(function (m) {
+      if (SPORT_FILTER !== 'all' && m.sport !== SPORT_FILTER) return;
+      (rounds[m.round] = rounds[m.round] || []).push(m);
+    });
+    var keys = Object.keys(rounds).map(Number).sort(function (a, b) { return a - b; });
+    if (!keys.length) return '<div class="card"><div class="empty">暂无赛程</div></div>';
+
+    var html = '<div class="seg">' +
+      '<button data-sport="all" class="' + (SPORT_FILTER === 'all' ? 'on' : '') + '">全部</button>' +
+      '<button data-sport="football" class="' + (SPORT_FILTER === 'football' ? 'on' : '') + '">⚽ 足球（单号班）</button>' +
+      '<button data-sport="basketball" class="' + (SPORT_FILTER === 'basketball' ? 'on' : '') + '">🏀 篮球（双号班）</button>' +
+      '</div>';
+
+    keys.forEach(function (r) {
+      var meta = roundMeta(r);
+      var thisWeek = isThisWeek(meta.date);
+      var photos = (DATA.schedulePhotos || []).filter(function (p) { return p.round === r; });
+      html += '<div class="round-block">';
+      html += '<div class="round-title"><span class="dot"></span>' + esc(meta.label || ('第' + r + '轮')) +
+        (meta.date ? ' · ' + esc(meta.date) + ' ' + weekdayOf(meta.date) : '') +
+        (thisWeek ? '<span class="week badge done">本周</span>' : '') + '</div>';
+      photos.forEach(function (p) {
+        html += '<div class="card"><img class="schedule-photo" src="' + esc(p.url) + '" alt="第' + r + '轮赛程图"></div>';
+      });
+      html += '<div class="card">';
+      rounds[r].forEach(function (m) { html += matchRowHTML(m); });
+      html += '</div></div>';
+    });
+    return html;
+  }
+
+  function matchRowHTML(m) {
+    var done = m.status === 'finished' && m.scoreA != null && m.scoreB != null;
+    var aWin = done && m.scoreA > m.scoreB, bWin = done && m.scoreB > m.scoreA;
+    var meta = [];
+    if (m.venue) meta.push('📍' + esc(m.venue));
+    if (m.date) meta.push('🕒' + esc(m.date));
+    if (m.photos && m.photos.length) meta.push('📷' + m.photos.length);
+    if (m.attA && m.attA.count) meta.push('👥' + m.attA.count + '+' + (m.attB && m.attB.count ? m.attB.count : 0));
+    return '<div class="match" data-id="' + esc(m.id) + '">' +
+      '<span class="tag ' + m.sport + '">' + sportName(m.sport) + '</span>' +
+      '<div class="teams">' +
+      '<div class="row ' + (done ? (aWin ? 'win' : (bWin ? 'lose' : '')) : '') + '"><span class="cls">' + teamName(m.a) + '</span><span class="sc">' + (done ? m.scoreA : '-') + '</span></div>' +
+      '<div class="row ' + (done ? (bWin ? 'win' : (aWin ? 'lose' : '')) : '') + '"><span class="cls">' + teamName(m.b) + '</span><span class="sc">' + (done ? m.scoreB : '-') + '</span></div>' +
+      (meta.length ? '<div class="meta">' + meta.join(' ') + '</div>' : '') +
+      '</div>' +
+      '<div class="right"><span class="badge ' + (done ? 'done' : 'pending') + '">' + (done ? '已结束' : '待战') + '</span></div>' +
+      '</div>';
+  }
+
+  /* ---------- 渲染：积分榜 ---------- */
+  function standingsHTML() {
+    var html = '';
+    ['football', 'basketball'].forEach(function (sp) {
+      var rows = standings(sp);
+      var unit = sp === 'football' ? '球' : '分';
+      html += '<div class="card"><div class="card-hd"><h2>' + (sp === 'football' ? '⚽ 足球积分榜' : '🏀 篮球积分榜') +
+        '</h2><span class="sub">' + (sp === 'football' ? '单号班' : '双号班') + '</span></div>';
+      if (!rows.length) { html += '<div class="empty">暂无数据</div></div>'; return; }
+      html += '<table><thead><tr><th class="rk"></th><th style="text-align:left;padding-left:12px">班级</th><th>场</th><th>胜</th><th>平</th><th>负</th><th>进' + unit + '</th><th>失' + unit + '</th><th>净</th><th>积分</th></tr></thead><tbody>';
+      rows.forEach(function (r, i) {
+        var cls = i === 0 ? 'rank1' : (i === 1 ? 'rank2' : (i === 2 ? 'rank3' : ''));
+        html += '<tr class="' + cls + '"><td class="rk"><span>' + (i + 1) + '</span></td>' +
+          '<td class="name">' + teamName(r.cls) + '</td><td class="num">' + r.p + '</td>' +
+          '<td class="num">' + r.w + '</td><td class="num">' + r.d + '</td><td class="num">' + r.l + '</td>' +
+          '<td class="num">' + r.gf + '</td><td class="num">' + r.ga + '</td>' +
+          '<td class="num">' + (r.gd > 0 ? '+' : '') + r.gd + '</td>' +
+          '<td class="num" style="font-weight:800">' + r.pts + '</td></tr>';
+      });
+      html += '</tbody></table>';
+      html += '<div class="legend">胜' + (CFG.points || {}).win + '分 · 平' + (CFG.points || {}).draw + '分 · 负' + (CFG.points || {}).lose + '分；同分先比净' + unit + '，再比进' + unit + '</div></div>';
+    });
+    return html;
+  }
+
+  /* ---------- 渲染：考勤 ---------- */
+  function attendanceHTML() {
+    var byCls = {}, total = 0, done = 0;
+    (DATA.matches || []).forEach(function (m) {
+      var any = (m.attA && m.attA.count) || (m.attB && m.attB.count);
+      if (any) done++;
+      [[m.a, m.attA], [m.b, m.attB]].forEach(function (pair) {
+        var cls = pair[0], att = pair[1] || {};
+        if (!att.count) return;
+        byCls[cls] = byCls[cls] || { matches: 0, people: 0 };
+        byCls[cls].matches++;
+        byCls[cls].people += Number(att.count) || 0;
+        total += Number(att.count) || 0;
+      });
+    });
+    var html = '<div class="card"><div class="card-hd"><h2>考勤总览</h2></div><div class="att-sum">' +
+      '<div class="box"><div class="n">' + done + '</div><div class="l">已考勤场次</div></div>' +
+      '<div class="box"><div class="n">' + total + '</div><div class="l">累计到场人次</div></div>' +
+      '</div></div>';
+
+    var keys = Object.keys(byCls).map(Number).sort(function (a, b) { return a - b; });
+    if (keys.length) {
+      html += '<div class="card"><div class="card-hd"><h2>各班到场人次</h2></div><table><thead><tr>' +
+        '<th style="text-align:left;padding-left:12px">班级</th><th>场次</th><th>人次</th></tr></thead><tbody>';
+      keys.forEach(function (c) {
+        html += '<tr><td class="name">' + teamName(c) + '</td><td class="num">' + byCls[c].matches + '</td><td class="num">' + byCls[c].people + '</td></tr>';
+      });
+      html += '</tbody></table></div>';
+    }
+
+    var list = (DATA.matches || []).filter(function (m) { return (m.attA && m.attA.count) || (m.attB && m.attB.count); });
+    if (list.length) {
+      html += '<div class="card"><div class="card-hd"><h2>明细</h2><span class="sub">点击可修改</span></div>';
+      list.forEach(function (m) {
+        html += '<div class="att-item" data-id="' + esc(m.id) + '">' +
+          '<div class="t">' + sportName(m.sport) + ' 第' + m.round + '轮 · ' + teamName(m.a) + ' vs ' + teamName(m.b) + '</div>' +
+          '<div class="d">' + teamName(m.a) + '：' + (m.attA.count || 0) + '人' + (m.attA.names ? '（' + esc(m.attA.names) + '）' : '') +
+          ' ｜ ' + teamName(m.b) + '：' + (m.attB.count || 0) + '人' + (m.attB.names ? '（' + esc(m.attB.names) + '）' : '') + '</div>' +
+          '</div>';
+      });
+      html += '</div>';
+    } else {
+      html += '<div class="card"><div class="empty">还没录考勤，裁判在「录入」页填写</div></div>';
+    }
+    return html;
+  }
+
+  /* ---------- 渲染：录入（管理） ---------- */
+  function adminHTML() {
+    if (!isAdmin) {
+      return '<div class="card"><div class="card-hd"><h2>裁判 / 组委会入口</h2></div><div class="sheet-body">' +
+        '<div class="field"><label>管理口令</label><input type="password" id="codeInput" inputmode="numeric" placeholder="输入口令"></div>' +
+        '<div class="field"><label>GitHub Token（只存在本机，不会上传）</label><input type="password" id="tokenInput" placeholder="ghp_… / github_pat_…" value="' + esc(token) + '"></div>' +
+        '<button class="btn" id="unlockBtn">进入录入</button>' +
+        '<div class="divider"></div>' +
+        '<div class="hint">Token 申请：GitHub → Settings → Developer settings → Personal access tokens → Fine-grained tokens → 只选这个仓库，权限勾 <code>Contents: Read and write</code> → 生成后粘贴到这里。<br>换设备时可用链接 <code>?token=xxx</code> 打开自动填入。</div>' +
+        '</div></div>';
+    }
+
+    var pendings = (DATA.matches || []).filter(function (m) { return m.status !== 'finished'; });
+    var thisWeek = (DATA.matches || []).filter(function (m) { return isThisWeek(m.date || roundMeta(m.round).date); });
+
+    var html = '<div class="card"><div class="card-hd"><h2>快速录入</h2><span class="sub">点比赛即填</span></div>';
+    if (thisWeek.length) {
+      html += '<div class="round-title" style="padding:8px 14px 4px"><span class="dot"></span>本周场次</div>';
+      thisWeek.forEach(function (m) { html += matchRowHTML(m); });
+    }
+    var rest = pendings.filter(function (m) { return thisWeek.indexOf(m) < 0; });
+    if (rest.length) {
+      html += '<div class="round-title" style="padding:8px 14px 4px"><span class="dot"></span>其他待录（' + rest.length + '）</div>';
+      rest.slice(0, 30).forEach(function (m) { html += matchRowHTML(m); });
+    }
+    if (!pendings.length) html += '<div class="empty">全部比赛已录完 🎉</div>';
+    html += '</div>';
+
+    html += '<div class="card"><div class="card-hd"><h2>轮次时间（填了才会显示「本周」）</h2></div><div class="sheet-body">';
+    var rounds = (DATA.rounds || []).slice().sort(function (a, b) { return a.round - b.round; });
+    if (!rounds.length) {
+      html += '<div class="hint">数据里没有轮次信息</div>';
+    } else {
+      rounds.forEach(function (r) {
+        html += '<div class="field" style="margin-bottom:8px"><label>' + esc(r.label || ('第' + r.round + '轮')) + ' 比赛日期</label>' +
+          '<input type="date" data-round="' + r.round + '" class="roundDate" value="' + esc(r.date || '') + '"></div>';
+      });
+      html += '<button class="btn sm" id="saveRounds">保存轮次时间</button>';
+    }
+    html += '</div></div>';
+
+    html += '<div class="card"><div class="card-hd"><h2>拍照上传赛程表</h2><span class="sub">每周一张</span></div><div class="sheet-body">' +
+      '<div class="row2"><div class="field"><label>属于第几轮</label><select id="schedRound">' +
+      [1, 2, 3, 4, 5].map(function (i) { return '<option value="' + i + '">第' + i + '轮</option>'; }).join('') +
+      '</select></div></div>' +
+      '<input type="file" id="schedPhoto" accept="image/*" capture="environment" hidden>' +
+      '<button class="btn ghost" id="schedPhotoBtn">📷 拍照 / 选择赛程图</button>' +
+      '<div class="photos" style="margin-top:10px">' + (DATA.schedulePhotos || []).map(function (p, i) {
+        return '<div class="ph"><img src="' + esc(p.url) + '"><button class="del" data-sched-del="' + i + '">×</button></div>';
+      }).join('') + '</div>' +
+      '</div></div>';
+
+    html += '<div class="card"><div class="card-hd"><h2>分享与设置</h2></div><div class="sheet-body">' +
+      '<button class="btn ghost" id="qrBtn">📱 生成访问二维码</button>' +
+      '<div class="btn-row"><button class="btn ghost sm" id="refreshBtn">重新拉取数据</button>' +
+      '<button class="btn danger sm" id="lockBtn">退出录入</button></div>' +
+      '<div class="divider"></div>' +
+      '<div class="hint">当前仓库：<code>' + esc(OWNER + '/' + REPO) + '</code>　口令在 <code>config.js</code> 里改。<br>所有人打开网页都能看赛程和积分；只有输入口令的这台设备能改数据。</div>' +
+      '</div></div>';
+
+    return html;
+  }
+
+  /* ---------- 比赛详情弹层 ---------- */
+  function openMatch(id) {
+    var m = (DATA.matches || []).filter(function (x) { return x.id === id; })[0];
+    if (!m) return;
+    var done = m.status === 'finished' && m.scoreA != null;
+    var html = '<div class="sheet-hd"><h3>' + sportName(m.sport) + ' 第' + m.round + '轮 · ' + teamName(m.a) + ' vs ' + teamName(m.b) + '</h3>' +
+      '<button class="close" data-close>×</button></div><div class="sheet-body">';
+
+    html += '<div class="hint" style="margin-bottom:10px">📍 ' + esc(m.venue || '未指定场地') +
+      (m.date ? '　🕒 ' + esc(m.date) : '') + '　ID ' + esc(m.id) + '</div>';
+
+    if (isAdmin) {
+      html += '<div class="field"><label>比分（点加减，或选常见比分）</label>' +
+        '<div class="score-edit">' +
+        '<div class="side"><div class="cls">' + teamName(m.a) + '</div><div class="stepper">' +
+        '<button data-score="a" data-d="-1">−</button><span class="val" id="scoreA">' + (m.scoreA == null ? 0 : m.scoreA) + '</span>' +
+        '<button data-score="a" data-d="1">+</button></div></div>' +
+        '<span class="vs">:</span>' +
+        '<div class="side"><div class="cls">' + teamName(m.b) + '</div><div class="stepper">' +
+        '<button data-score="b" data-d="-1">−</button><span class="val" id="scoreB">' + (m.scoreB == null ? 0 : m.scoreB) + '</span>' +
+        '<button data-score="b" data-d="1">+</button></div></div></div>' +
+        '<div class="quick">' + [['0:0', 0, 0], ['1:0', 1, 0], ['2:0', 2, 0], ['2:1', 2, 1], ['3:0', 3, 0], ['3:2', 3, 2], ['20:15', 20, 15], ['30:20', 30, 20]]
+          .map(function (q) { return '<button data-quick="' + q[1] + ',' + q[2] + '">' + q[0] + '</button>'; }).join('') + '</div></div>';
+
+      html += '<div class="field"><label>考勤：到场人数与名单</label>' +
+        '<div class="row2"><div><input type="number" inputmode="numeric" id="attA" placeholder="' + teamName(m.a) + '到场人数" value="' + (m.attA && m.attA.count != null ? m.attA.count : '') + '"></div>' +
+        '<div><input type="number" inputmode="numeric" id="attB" placeholder="' + teamName(m.b) + '到场人数" value="' + (m.attB && m.attB.count != null ? m.attB.count : '') + '"></div></div>' +
+        '<div style="height:8px"></div>' +
+        '<input type="text" id="namesA" placeholder="' + teamName(m.a) + '名单（空格分隔，可留空）" value="' + esc(m.attA && m.attA.names || '') + '">' +
+        '<div style="height:8px"></div>' +
+        '<input type="text" id="namesB" placeholder="' + teamName(m.b) + '名单（空格分隔，可留空）" value="' + esc(m.attB && m.attB.names || '') + '">' +
+        '</div>';
+
+      html += '<div class="field"><label>现场照片（成绩表 / 合影，自动压缩）</label>' +
+        '<div class="photos">' + (m.photos || []).map(function (u, i) {
+          return '<div class="ph"><img src="' + esc(u) + '"><button class="del" data-photo-del="' + i + '">×</button></div>';
+        }).join('') +
+        '<div class="add-photo" id="addPhoto"><span class="plus">＋</span>拍照</div></div>' +
+        '<input type="file" id="photoInput" accept="image/*" capture="environment" hidden></div>';
+
+      html += '<div class="field"><label>备注（弃权、天气、加时等）</label>' +
+        '<textarea id="note" placeholder="可留空">' + esc(m.note || '') + '</textarea></div>';
+
+      html += '<button class="btn" id="saveMatch">保存并同步</button>';
+      html += '<div class="btn-row"><button class="btn ghost sm" id="clearScore">清除成绩</button>' +
+        '<button class="btn ghost sm" id="setPending">标为待战</button></div>';
+    } else {
+      html += '<div class="card" style="margin-bottom:12px"><div class="card-hd"><h2>比分</h2></div>' +
+        '<div class="att-sum"><div class="box"><div class="n">' + (done ? m.scoreA : '-') + '</div><div class="l">' + teamName(m.a) + '</div></div>' +
+        '<div class="box"><div class="n">' + (done ? m.scoreB : '-') + '</div><div class="l">' + teamName(m.b) + '</div></div></div></div>';
+      if ((m.attA && m.attA.count) || (m.attB && m.attB.count)) {
+        html += '<div class="card" style="margin-bottom:12px"><div class="card-hd"><h2>考勤</h2></div>' +
+          '<div class="att-item"><div class="t">' + teamName(m.a) + '：' + (m.attA.count || 0) + '人</div><div class="d">' + esc(m.attA.names || '') + '</div></div>' +
+          '<div class="att-item"><div class="t">' + teamName(m.b) + '：' + (m.attB.count || 0) + '人</div><div class="d">' + esc(m.attB.names || '') + '</div></div></div>';
+      }
+      if (m.note) html += '<div class="warn">' + esc(m.note) + '</div>';
+      if ((m.photos || []).length) {
+        html += '<div class="field"><label>现场照片</label><div class="photos">' +
+          m.photos.map(function (u) { return '<div class="ph"><img src="' + esc(u) + '"></div>'; }).join('') + '</div></div>';
+      }
+      html += '<div class="hint">查看赛程和积分不需要口令；如需录入比分，请在「录入」页输入口令。</div>';
+    }
+    html += '</div>';
+    showSheet(html, m);
+  }
+
+  function showSheet(html, ctx) {
+    var sheet = $('#sheet');
+    sheet.innerHTML = html;
+    sheet.dataset.ctx = ctx ? ctx.id : '';
+    $('#sheetMask').hidden = false;
+    sheet.hidden = false;
+  }
+  function closeSheet() {
+    $('#sheet').hidden = true;
+    $('#sheetMask').hidden = true;
+    $('#sheet').innerHTML = '';
+  }
+
+  /* ---------- 事件 ---------- */
+  function render() {
+    if (!DATA) return;
+    $('#appTitle').textContent = DATA.title || CFG.title || '班级球类联赛';
+    if (VIEW === 'schedule') app.innerHTML = scheduleHTML();
+    else if (VIEW === 'standings') app.innerHTML = standingsHTML();
+    else if (VIEW === 'attendance') app.innerHTML = attendanceHTML();
+    else app.innerHTML = adminHTML();
+    window.scrollTo(0, 0);
+  }
+
+  document.addEventListener('click', function (e) {
+    var tab = e.target.closest('.tab');
+    if (tab) {
+      document.querySelectorAll('.tab').forEach(function (t) { t.classList.remove('active'); });
+      tab.classList.add('active');
+      VIEW = tab.dataset.view;
+      render();
+      return;
+    }
+    var seg = e.target.closest('.seg button');
+    if (seg) { SPORT_FILTER = seg.dataset.sport; render(); return; }
+
+    var m = e.target.closest('.match, .att-item');
+    if (m && m.dataset.id) { openMatch(m.dataset.id); return; }
+
+    if (e.target.closest('[data-close]')) { closeSheet(); return; }
+    if (e.target.id === 'sheetMask') { closeSheet(); return; }
+
+    // 比分加减
+    var step = e.target.closest('[data-score]');
+    if (step) {
+      var el = $('#' + (step.dataset.score === 'a' ? 'scoreA' : 'scoreB'));
+      var v = Math.max(0, (parseInt(el.textContent, 10) || 0) + parseInt(step.dataset.d, 10));
+      el.textContent = v;
+      return;
+    }
+    var q = e.target.closest('[data-quick]');
+    if (q) {
+      var p = q.dataset.quick.split(',');
+      $('#scoreA').textContent = p[0]; $('#scoreB').textContent = p[1];
+      return;
+    }
+    // 删除照片
+    var pd = e.target.closest('[data-photo-del]');
+    if (pd) { sheetDelPhoto(parseInt(pd.dataset.photoDel, 10)); return; }
+    var sd = e.target.closest('[data-sched-del]');
+    if (sd) { sheetDelSchedulePhoto(parseInt(sd.dataset.schedDel, 10)); return; }
+
+    if (e.target.id === 'addPhoto') { $('#photoInput').click(); return; }
+    if (e.target.id === 'saveMatch') { saveMatch(); return; }
+    if (e.target.id === 'clearScore') { clearScore(); return; }
+    if (e.target.id === 'setPending') { setPending(); return; }
+    if (e.target.id === 'unlockBtn') { unlock(); return; }
+    if (e.target.id === 'saveRounds') { saveRounds(); return; }
+    if (e.target.id === 'schedPhotoBtn') { $('#schedPhoto').click(); return; }
+    if (e.target.id === 'qrBtn') { showQR(); return; }
+    if (e.target.id === 'refreshBtn') { loadData().then(render).then(function () { toast('已刷新'); }); return; }
+    if (e.target.id === 'lockBtn') {
+      localStorage.removeItem(UNLOCK_KEY);
+      isAdmin = false; render(); toast('已退出录入');
+      return;
+    }
+  });
+
+  document.addEventListener('change', function (e) {
+    if (e.target.id === 'photoInput' && e.target.files[0]) {
+      var f = e.target.files[0];
+      compressImage(f, 1100, 0.62).then(function (dataUrl) {
+        var id = $('#sheet').dataset.ctx;
+        toast('上传中…');
+        return uploadPhoto(dataUrl, id || 'm').then(function (url) {
+          var mm = findMatch(id);
+          mm.photos = mm.photos || [];
+          mm.photos.push(url);
+          markPending('match', id, mm);
+          openMatch(id);
+          return saveAll('添加比赛照片 ' + id);
+        }).then(function () { openMatch(id); toast('照片已上传'); });
+      }).catch(function (err) { toast('照片处理失败：' + err.message); });
+      e.target.value = '';
+    }
+    if (e.target.id === 'schedPhoto' && e.target.files[0]) {
+      var file = e.target.files[0];
+      var rnd = $('#schedRound') ? $('#schedRound').value : '1';
+      compressImage(file, 1400, 0.7).then(function (dataUrl) {
+        toast('上传中…');
+        return uploadPhoto(dataUrl, 'schedule-r' + rnd).then(function (url) {
+          DATA.schedulePhotos = DATA.schedulePhotos || [];
+          DATA.schedulePhotos.push({ url: url, round: Number(rnd), at: new Date().toISOString() });
+          markPending('schedulePhotos', null, DATA.schedulePhotos);
+          return saveAll('上传第' + rnd + '轮赛程图');
+        }).then(function () { render(); toast('赛程图已上传'); });
+      }).catch(function (err) { toast('上传失败：' + err.message); });
+      e.target.value = '';
+    }
+  });
+
+  function findMatch(id) {
+    return (DATA.matches || []).filter(function (x) { return x.id === id; })[0];
+  }
+
+  function saveMatch() {
+    var id = $('#sheet').dataset.ctx;
+    var m = findMatch(id);
+    var sa = parseInt($('#scoreA').textContent, 10) || 0;
+    var sb = parseInt($('#scoreB').textContent, 10) || 0;
+    m.scoreA = sa; m.scoreB = sb; m.status = 'finished';
+    m.attA = { count: $('#attA').value === '' ? null : Number($('#attA').value), names: $('#namesA').value.trim() };
+    m.attB = { count: $('#attB').value === '' ? null : Number($('#attB').value), names: $('#namesB').value.trim() };
+    m.note = $('#note').value.trim();
+    markPending('match', id, m);
+    saveAll('录入比分 ' + teamName(m.a) + ' ' + sa + ':' + sb + ' ' + teamName(m.b)).then(function (ok) {
+      if (ok) { closeSheet(); render(); toast('已保存'); }
+    });
+  }
+  function clearScore() {
+    var id = $('#sheet').dataset.ctx, m = findMatch(id);
+    m.scoreA = null; m.scoreB = null; m.status = 'pending';
+    markPending('match', id, m);
+    saveAll('清除成绩 ' + id).then(function (ok) { if (ok) { closeSheet(); render(); toast('已清除'); } });
+  }
+  function setPending() {
+    var id = $('#sheet').dataset.ctx, m = findMatch(id);
+    m.status = 'pending';
+    markPending('match', id, m);
+    saveAll('标记为待战 ' + id).then(function (ok) { if (ok) { closeSheet(); render(); toast('已更新'); } });
+  }
+  function sheetDelPhoto(i) {
+    var id = $('#sheet').dataset.ctx, m = findMatch(id);
+    m.photos.splice(i, 1);
+    markPending('match', id, m);
+    saveAll('删除照片 ' + id).then(function (ok) { if (ok) { openMatch(id); toast('已删除'); } });
+  }
+  function sheetDelSchedulePhoto(i) {
+    DATA.schedulePhotos.splice(i, 1);
+    markPending('schedulePhotos', null, DATA.schedulePhotos);
+    saveAll('删除赛程图').then(function (ok) { if (ok) { render(); toast('已删除'); } });
+  }
+  function saveRounds() {
+    var inputs = document.querySelectorAll('.roundDate');
+    DATA.rounds = DATA.rounds || [];
+    inputs.forEach(function (inp) {
+      var r = Number(inp.dataset.round);
+      var meta = roundMeta(r);
+      meta.date = inp.value;
+      if (DATA.rounds.indexOf(meta) < 0) DATA.rounds.push(meta);
+    });
+    markPending('rounds', null, DATA.rounds);
+    saveAll('更新轮次时间').then(function (ok) { if (ok) toast('轮次时间已保存'); });
+  }
+  function unlock() {
+    var code = $('#codeInput').value.trim();
+    var tk = $('#tokenInput').value.trim();
+    if (code !== String(CFG.adminCode)) { toast('口令不对'); return; }
+    if (tk) { token = tk; localStorage.setItem(TOKEN_KEY, tk); }
+    isAdmin = true;
+    localStorage.setItem(UNLOCK_KEY, '1');
+    var u = new URLSearchParams(location.search).get('token');
+    if (u) { token = token || u; localStorage.setItem(TOKEN_KEY, token); history.replaceState(null, '', location.pathname); }
+    render();
+    toast('已进入录入模式');
+  }
+
+  function showQR() {
+    var url = location.origin + location.pathname + (location.pathname === '/' ? '' : '');
+    var html = '<div class="sheet-hd"><h3>扫码访问</h3><button class="close" data-close>×</button></div>' +
+      '<div class="sheet-body"><div class="qr-box"><div id="qr"></div>' +
+      '<div class="qr-url">' + esc(url) + '</div></div>' +
+      '<div class="divider"></div>' +
+      '<div class="hint">把这个二维码打印贴在公告栏或发到班级群，扫码即可查看赛程、比分、积分榜。其他裁判设备扫码后，用链接加 <code>?token=你的Token</code> 打开即可录入。</div>' +
+      '<button class="btn ghost" id="copyLink" style="margin-top:10px">复制链接</button></div>';
+    showSheet(html);
+    setTimeout(function () {
+      var box = document.getElementById('qr');
+      if (!box) return;
+      if (window.QRCode && QRCode.toCanvas) {
+        QRCode.toCanvas(url, { width: 220, margin: 1 }, function (err, canvas) {
+          if (err || !canvas) {
+            box.innerHTML = '<img src="https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=' + encodeURIComponent(url) + '" alt="二维码">';
+          } else { box.appendChild(canvas); }
+        });
+      } else {
+        box.innerHTML = '<img src="https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=' + encodeURIComponent(url) + '" alt="二维码">';
+      }
+      var cp = document.getElementById('copyLink');
+      if (cp) cp.addEventListener('click', function () {
+        navigator.clipboard && navigator.clipboard.writeText(url);
+        toast('链接已复制');
+      });
+    }, 0);
+  }
+
+  /* ---------- 启动 ---------- */
+  var urlToken = new URLSearchParams(location.search).get('token');
+  if (urlToken && !token) { token = urlToken; localStorage.setItem(TOKEN_KEY, token); }
+
+  loadData().then(function () { render(); });
+  setInterval(function () {
+    if (document.hidden) return;
+    if (Date.now() - lastSync > 60000) loadData().then(render);
+  }, 60000);
+})();

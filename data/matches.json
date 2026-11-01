@@ -1,0 +1,914 @@
+{
+  "version": 1,
+  "title": "初一年级班级球类联赛",
+  "rounds": [
+    {
+      "round": 1,
+      "date": "",
+      "label": "第1轮"
+    },
+    {
+      "round": 2,
+      "date": "",
+      "label": "第2轮"
+    },
+    {
+      "round": 3,
+      "date": "",
+      "label": "第3轮"
+    },
+    {
+      "round": 4,
+      "date": "",
+      "label": "第4轮"
+    },
+    {
+      "round": 5,
+      "date": "",
+      "label": "第5轮"
+    }
+  ],
+  "schedulePhotos": [],
+  "matches": [
+    {
+      "id": "F1-1",
+      "round": 1,
+      "sport": "football",
+      "a": 1,
+      "b": 3,
+      "venue": "1/5号场地",
+      "date": "",
+      "scoreA": null,
+      "scoreB": null,
+      "status": "pending",
+      "attA": {
+        "count": null,
+        "names": ""
+      },
+      "attB": {
+        "count": null,
+        "names": ""
+      },
+      "photos": [],
+      "note": ""
+    },
+    {
+      "id": "F1-2",
+      "round": 1,
+      "sport": "football",
+      "a": 5,
+      "b": 7,
+      "venue": "2/6号场地",
+      "date": "",
+      "scoreA": null,
+      "scoreB": null,
+      "status": "pending",
+      "attA": {
+        "count": null,
+        "names": ""
+      },
+      "attB": {
+        "count": null,
+        "names": ""
+      },
+      "photos": [],
+      "note": ""
+    },
+    {
+      "id": "F1-3",
+      "round": 1,
+      "sport": "football",
+      "a": 9,
+      "b": 11,
+      "venue": "3/7号场地",
+      "date": "",
+      "scoreA": null,
+      "scoreB": null,
+      "status": "pending",
+      "attA": {
+        "count": null,
+        "names": ""
+      },
+      "attB": {
+        "count": null,
+        "names": ""
+      },
+      "photos": [],
+      "note": ""
+    },
+    {
+      "id": "F1-4",
+      "round": 1,
+      "sport": "football",
+      "a": 13,
+      "b": 15,
+      "venue": "4/8号场地",
+      "date": "",
+      "scoreA": null,
+      "scoreB": null,
+      "status": "pending",
+      "attA": {
+        "count": null,
+        "names": ""
+      },
+      "attB": {
+        "count": null,
+        "names": ""
+      },
+      "photos": [],
+      "note": ""
+    },
+    {
+      "id": "F2-1",
+      "round": 2,
+      "sport": "football",
+      "a": 1,
+      "b": 5,
+      "venue": "2/6号场地",
+      "date": "",
+      "scoreA": null,
+      "scoreB": null,
+      "status": "pending",
+      "attA": {
+        "count": null,
+        "names": ""
+      },
+      "attB": {
+        "count": null,
+        "names": ""
+      },
+      "photos": [],
+      "note": ""
+    },
+    {
+      "id": "F2-2",
+      "round": 2,
+      "sport": "football",
+      "a": 3,
+      "b": 9,
+      "venue": "3/7号场地",
+      "date": "",
+      "scoreA": null,
+      "scoreB": null,
+      "status": "pending",
+      "attA": {
+        "count": null,
+        "names": ""
+      },
+      "attB": {
+        "count": null,
+        "names": ""
+      },
+      "photos": [],
+      "note": ""
+    },
+    {
+      "id": "F2-3",
+      "round": 2,
+      "sport": "football",
+      "a": 7,
+      "b": 13,
+      "venue": "4/8号场地",
+      "date": "",
+      "scoreA": null,
+      "scoreB": null,
+      "status": "pending",
+      "attA": {
+        "count": null,
+        "names": ""
+      },
+      "attB": {
+        "count": null,
+        "names": ""
+      },
+      "photos": [],
+      "note": ""
+    },
+    {
+      "id": "F2-4",
+      "round": 2,
+      "sport": "football",
+      "a": 11,
+      "b": 15,
+      "venue": "1/5号场地",
+      "date": "",
+      "scoreA": null,
+      "scoreB": null,
+      "status": "pending",
+      "attA": {
+        "count": null,
+        "names": ""
+      },
+      "attB": {
+        "count": null,
+        "names": ""
+      },
+      "photos": [],
+      "note": ""
+    },
+    {
+      "id": "F3-1",
+      "round": 3,
+      "sport": "football",
+      "a": 1,
+      "b": 7,
+      "venue": "3/7号场地",
+      "date": "",
+      "scoreA": null,
+      "scoreB": null,
+      "status": "pending",
+      "attA": {
+        "count": null,
+        "names": ""
+      },
+      "attB": {
+        "count": null,
+        "names": ""
+      },
+      "photos": [],
+      "note": ""
+    },
+    {
+      "id": "F3-2",
+      "round": 3,
+      "sport": "football",
+      "a": 3,
+      "b": 13,
+      "venue": "4/8号场地",
+      "date": "",
+      "scoreA": null,
+      "scoreB": null,
+      "status": "pending",
+      "attA": {
+        "count": null,
+        "names": ""
+      },
+      "attB": {
+        "count": null,
+        "names": ""
+      },
+      "photos": [],
+      "note": ""
+    },
+    {
+      "id": "F3-3",
+      "round": 3,
+      "sport": "football",
+      "a": 5,
+      "b": 15,
+      "venue": "1/5号场地",
+      "date": "",
+      "scoreA": null,
+      "scoreB": null,
+      "status": "pending",
+      "attA": {
+        "count": null,
+        "names": ""
+      },
+      "attB": {
+        "count": null,
+        "names": ""
+      },
+      "photos": [],
+      "note": ""
+    },
+    {
+      "id": "F3-4",
+      "round": 3,
+      "sport": "football",
+      "a": 9,
+      "b": 11,
+      "venue": "2/6号场地",
+      "date": "",
+      "scoreA": null,
+      "scoreB": null,
+      "status": "pending",
+      "attA": {
+        "count": null,
+        "names": ""
+      },
+      "attB": {
+        "count": null,
+        "names": ""
+      },
+      "photos": [],
+      "note": ""
+    },
+    {
+      "id": "F4-1",
+      "round": 4,
+      "sport": "football",
+      "a": 1,
+      "b": 9,
+      "venue": "4/8号场地",
+      "date": "",
+      "scoreA": null,
+      "scoreB": null,
+      "status": "pending",
+      "attA": {
+        "count": null,
+        "names": ""
+      },
+      "attB": {
+        "count": null,
+        "names": ""
+      },
+      "photos": [],
+      "note": ""
+    },
+    {
+      "id": "F4-2",
+      "round": 4,
+      "sport": "football",
+      "a": 3,
+      "b": 15,
+      "venue": "1/5号场地",
+      "date": "",
+      "scoreA": null,
+      "scoreB": null,
+      "status": "pending",
+      "attA": {
+        "count": null,
+        "names": ""
+      },
+      "attB": {
+        "count": null,
+        "names": ""
+      },
+      "photos": [],
+      "note": ""
+    },
+    {
+      "id": "F4-3",
+      "round": 4,
+      "sport": "football",
+      "a": 5,
+      "b": 11,
+      "venue": "2/6号场地",
+      "date": "",
+      "scoreA": null,
+      "scoreB": null,
+      "status": "pending",
+      "attA": {
+        "count": null,
+        "names": ""
+      },
+      "attB": {
+        "count": null,
+        "names": ""
+      },
+      "photos": [],
+      "note": ""
+    },
+    {
+      "id": "F4-4",
+      "round": 4,
+      "sport": "football",
+      "a": 7,
+      "b": 13,
+      "venue": "3/7号场地",
+      "date": "",
+      "scoreA": null,
+      "scoreB": null,
+      "status": "pending",
+      "attA": {
+        "count": null,
+        "names": ""
+      },
+      "attB": {
+        "count": null,
+        "names": ""
+      },
+      "photos": [],
+      "note": ""
+    },
+    {
+      "id": "F5-1",
+      "round": 5,
+      "sport": "football",
+      "a": 1,
+      "b": 11,
+      "venue": "1/5号场地",
+      "date": "",
+      "scoreA": null,
+      "scoreB": null,
+      "status": "pending",
+      "attA": {
+        "count": null,
+        "names": ""
+      },
+      "attB": {
+        "count": null,
+        "names": ""
+      },
+      "photos": [],
+      "note": ""
+    },
+    {
+      "id": "F5-2",
+      "round": 5,
+      "sport": "football",
+      "a": 3,
+      "b": 7,
+      "venue": "2/6号场地",
+      "date": "",
+      "scoreA": null,
+      "scoreB": null,
+      "status": "pending",
+      "attA": {
+        "count": null,
+        "names": ""
+      },
+      "attB": {
+        "count": null,
+        "names": ""
+      },
+      "photos": [],
+      "note": ""
+    },
+    {
+      "id": "F5-3",
+      "round": 5,
+      "sport": "football",
+      "a": 5,
+      "b": 13,
+      "venue": "3/7号场地",
+      "date": "",
+      "scoreA": null,
+      "scoreB": null,
+      "status": "pending",
+      "attA": {
+        "count": null,
+        "names": ""
+      },
+      "attB": {
+        "count": null,
+        "names": ""
+      },
+      "photos": [],
+      "note": ""
+    },
+    {
+      "id": "F5-4",
+      "round": 5,
+      "sport": "football",
+      "a": 9,
+      "b": 15,
+      "venue": "4/8号场地",
+      "date": "",
+      "scoreA": null,
+      "scoreB": null,
+      "status": "pending",
+      "attA": {
+        "count": null,
+        "names": ""
+      },
+      "attB": {
+        "count": null,
+        "names": ""
+      },
+      "photos": [],
+      "note": ""
+    },
+    {
+      "id": "B1-1",
+      "round": 1,
+      "sport": "basketball",
+      "a": 2,
+      "b": 4,
+      "venue": "5/1号场地",
+      "date": "",
+      "scoreA": null,
+      "scoreB": null,
+      "status": "pending",
+      "attA": {
+        "count": null,
+        "names": ""
+      },
+      "attB": {
+        "count": null,
+        "names": ""
+      },
+      "photos": [],
+      "note": ""
+    },
+    {
+      "id": "B1-2",
+      "round": 1,
+      "sport": "basketball",
+      "a": 6,
+      "b": 8,
+      "venue": "6/2号场地",
+      "date": "",
+      "scoreA": null,
+      "scoreB": null,
+      "status": "pending",
+      "attA": {
+        "count": null,
+        "names": ""
+      },
+      "attB": {
+        "count": null,
+        "names": ""
+      },
+      "photos": [],
+      "note": ""
+    },
+    {
+      "id": "B1-3",
+      "round": 1,
+      "sport": "basketball",
+      "a": 10,
+      "b": 12,
+      "venue": "7/3号场地",
+      "date": "",
+      "scoreA": null,
+      "scoreB": null,
+      "status": "pending",
+      "attA": {
+        "count": null,
+        "names": ""
+      },
+      "attB": {
+        "count": null,
+        "names": ""
+      },
+      "photos": [],
+      "note": ""
+    },
+    {
+      "id": "B1-4",
+      "round": 1,
+      "sport": "basketball",
+      "a": 14,
+      "b": 16,
+      "venue": "8/4号场地",
+      "date": "",
+      "scoreA": null,
+      "scoreB": null,
+      "status": "pending",
+      "attA": {
+        "count": null,
+        "names": ""
+      },
+      "attB": {
+        "count": null,
+        "names": ""
+      },
+      "photos": [],
+      "note": ""
+    },
+    {
+      "id": "B2-1",
+      "round": 2,
+      "sport": "basketball",
+      "a": 2,
+      "b": 6,
+      "venue": "6/2号场地",
+      "date": "",
+      "scoreA": null,
+      "scoreB": null,
+      "status": "pending",
+      "attA": {
+        "count": null,
+        "names": ""
+      },
+      "attB": {
+        "count": null,
+        "names": ""
+      },
+      "photos": [],
+      "note": ""
+    },
+    {
+      "id": "B2-2",
+      "round": 2,
+      "sport": "basketball",
+      "a": 4,
+      "b": 10,
+      "venue": "7/3号场地",
+      "date": "",
+      "scoreA": null,
+      "scoreB": null,
+      "status": "pending",
+      "attA": {
+        "count": null,
+        "names": ""
+      },
+      "attB": {
+        "count": null,
+        "names": ""
+      },
+      "photos": [],
+      "note": ""
+    },
+    {
+      "id": "B2-3",
+      "round": 2,
+      "sport": "basketball",
+      "a": 8,
+      "b": 14,
+      "venue": "8/4号场地",
+      "date": "",
+      "scoreA": null,
+      "scoreB": null,
+      "status": "pending",
+      "attA": {
+        "count": null,
+        "names": ""
+      },
+      "attB": {
+        "count": null,
+        "names": ""
+      },
+      "photos": [],
+      "note": ""
+    },
+    {
+      "id": "B2-4",
+      "round": 2,
+      "sport": "basketball",
+      "a": 12,
+      "b": 16,
+      "venue": "5/1号场地",
+      "date": "",
+      "scoreA": null,
+      "scoreB": null,
+      "status": "pending",
+      "attA": {
+        "count": null,
+        "names": ""
+      },
+      "attB": {
+        "count": null,
+        "names": ""
+      },
+      "photos": [],
+      "note": ""
+    },
+    {
+      "id": "B3-1",
+      "round": 3,
+      "sport": "basketball",
+      "a": 2,
+      "b": 8,
+      "venue": "7/3号场地",
+      "date": "",
+      "scoreA": null,
+      "scoreB": null,
+      "status": "pending",
+      "attA": {
+        "count": null,
+        "names": ""
+      },
+      "attB": {
+        "count": null,
+        "names": ""
+      },
+      "photos": [],
+      "note": ""
+    },
+    {
+      "id": "B3-2",
+      "round": 3,
+      "sport": "basketball",
+      "a": 4,
+      "b": 14,
+      "venue": "8/4号场地",
+      "date": "",
+      "scoreA": null,
+      "scoreB": null,
+      "status": "pending",
+      "attA": {
+        "count": null,
+        "names": ""
+      },
+      "attB": {
+        "count": null,
+        "names": ""
+      },
+      "photos": [],
+      "note": ""
+    },
+    {
+      "id": "B3-3",
+      "round": 3,
+      "sport": "basketball",
+      "a": 6,
+      "b": 16,
+      "venue": "5/1号场地",
+      "date": "",
+      "scoreA": null,
+      "scoreB": null,
+      "status": "pending",
+      "attA": {
+        "count": null,
+        "names": ""
+      },
+      "attB": {
+        "count": null,
+        "names": ""
+      },
+      "photos": [],
+      "note": ""
+    },
+    {
+      "id": "B3-4",
+      "round": 3,
+      "sport": "basketball",
+      "a": 10,
+      "b": 12,
+      "venue": "6/2号场地",
+      "date": "",
+      "scoreA": null,
+      "scoreB": null,
+      "status": "pending",
+      "attA": {
+        "count": null,
+        "names": ""
+      },
+      "attB": {
+        "count": null,
+        "names": ""
+      },
+      "photos": [],
+      "note": ""
+    },
+    {
+      "id": "B4-1",
+      "round": 4,
+      "sport": "basketball",
+      "a": 2,
+      "b": 10,
+      "venue": "8/4号场地",
+      "date": "",
+      "scoreA": null,
+      "scoreB": null,
+      "status": "pending",
+      "attA": {
+        "count": null,
+        "names": ""
+      },
+      "attB": {
+        "count": null,
+        "names": ""
+      },
+      "photos": [],
+      "note": ""
+    },
+    {
+      "id": "B4-2",
+      "round": 4,
+      "sport": "basketball",
+      "a": 4,
+      "b": 16,
+      "venue": "5/1号场地",
+      "date": "",
+      "scoreA": null,
+      "scoreB": null,
+      "status": "pending",
+      "attA": {
+        "count": null,
+        "names": ""
+      },
+      "attB": {
+        "count": null,
+        "names": ""
+      },
+      "photos": [],
+      "note": ""
+    },
+    {
+      "id": "B4-3",
+      "round": 4,
+      "sport": "basketball",
+      "a": 6,
+      "b": 12,
+      "venue": "6/2号场地",
+      "date": "",
+      "scoreA": null,
+      "scoreB": null,
+      "status": "pending",
+      "attA": {
+        "count": null,
+        "names": ""
+      },
+      "attB": {
+        "count": null,
+        "names": ""
+      },
+      "photos": [],
+      "note": ""
+    },
+    {
+      "id": "B4-4",
+      "round": 4,
+      "sport": "basketball",
+      "a": 8,
+      "b": 14,
+      "venue": "7/3号场地",
+      "date": "",
+      "scoreA": null,
+      "scoreB": null,
+      "status": "pending",
+      "attA": {
+        "count": null,
+        "names": ""
+      },
+      "attB": {
+        "count": null,
+        "names": ""
+      },
+      "photos": [],
+      "note": ""
+    },
+    {
+      "id": "B5-1",
+      "round": 5,
+      "sport": "basketball",
+      "a": 2,
+      "b": 12,
+      "venue": "5/1号场地",
+      "date": "",
+      "scoreA": null,
+      "scoreB": null,
+      "status": "pending",
+      "attA": {
+        "count": null,
+        "names": ""
+      },
+      "attB": {
+        "count": null,
+        "names": ""
+      },
+      "photos": [],
+      "note": ""
+    },
+    {
+      "id": "B5-2",
+      "round": 5,
+      "sport": "basketball",
+      "a": 4,
+      "b": 8,
+      "venue": "6/2号场地",
+      "date": "",
+      "scoreA": null,
+      "scoreB": null,
+      "status": "pending",
+      "attA": {
+        "count": null,
+        "names": ""
+      },
+      "attB": {
+        "count": null,
+        "names": ""
+      },
+      "photos": [],
+      "note": ""
+    },
+    {
+      "id": "B5-3",
+      "round": 5,
+      "sport": "basketball",
+      "a": 6,
+      "b": 14,
+      "venue": "7/3号场地",
+      "date": "",
+      "scoreA": null,
+      "scoreB": null,
+      "status": "pending",
+      "attA": {
+        "count": null,
+        "names": ""
+      },
+      "attB": {
+        "count": null,
+        "names": ""
+      },
+      "photos": [],
+      "note": ""
+    },
+    {
+      "id": "B5-4",
+      "round": 5,
+      "sport": "basketball",
+      "a": 10,
+      "b": 16,
+      "venue": "8/4号场地",
+      "date": "",
+      "scoreA": null,
+      "scoreB": null,
+      "status": "pending",
+      "attA": {
+        "count": null,
+        "names": ""
+      },
+      "attB": {
+        "count": null,
+        "names": ""
+      },
+      "photos": [],
+      "note": ""
+    }
+  ]
+}
