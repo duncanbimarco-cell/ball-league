@@ -220,13 +220,19 @@
     var list = (DATA.rounds || []).filter(function (x) { return x.round === r; });
     return list[0] || { round: r, date: '', label: '第' + r + '轮' };
   }
+  function sessionMeta(s) {
+    var list = (DATA.sessions || []).filter(function (x) { return x.session === s; });
+    return list[0] || { session: s, label: s === 1 ? '第一节' : '第二节', desc: '' };
+  }
 
   /* ---------- 积分计算 ---------- */
-  function standings(sport) {
+  // parity: 1=单数组班, 0=双数组班, null=全部
+  function standings(sport, parity) {
     var P = CFG.points || { win: 3, draw: 1, lose: 0 };
     var teams = {};
     (DATA.matches || []).forEach(function (m) {
       if (m.sport !== sport) return;
+      if (parity !== null && m.a % 2 !== parity) return;
       teams[m.a] = true; teams[m.b] = true;
     });
     var rows = Object.keys(teams).map(Number).sort(function (a, b) { return a - b; }).map(function (n) {
@@ -258,15 +264,17 @@
     var rounds = {};
     (DATA.matches || []).forEach(function (m) {
       if (SPORT_FILTER !== 'all' && m.sport !== SPORT_FILTER) return;
-      (rounds[m.round] = rounds[m.round] || []).push(m);
+      rounds[m.round] = rounds[m.round] || {};
+      var s = m.session || 1;
+      (rounds[m.round][s] = rounds[m.round][s] || []).push(m);
     });
     var keys = Object.keys(rounds).map(Number).sort(function (a, b) { return a - b; });
     if (!keys.length) return '<div class="card"><div class="empty">暂无赛程</div></div>';
 
     var html = '<div class="seg">' +
       '<button data-sport="all" class="' + (SPORT_FILTER === 'all' ? 'on' : '') + '">全部</button>' +
-      '<button data-sport="football" class="' + (SPORT_FILTER === 'football' ? 'on' : '') + '">⚽ 足球（单号班）</button>' +
-      '<button data-sport="basketball" class="' + (SPORT_FILTER === 'basketball' ? 'on' : '') + '">🏀 篮球（双号班）</button>' +
+      '<button data-sport="football" class="' + (SPORT_FILTER === 'football' ? 'on' : '') + '">⚽ 足球</button>' +
+      '<button data-sport="basketball" class="' + (SPORT_FILTER === 'basketball' ? 'on' : '') + '">🏀 篮球</button>' +
       '</div>';
 
     keys.forEach(function (r) {
@@ -280,9 +288,18 @@
       photos.forEach(function (p) {
         html += '<div class="card"><img class="schedule-photo" src="' + esc(p.url) + '" alt="第' + r + '轮赛程图"></div>';
       });
-      html += '<div class="card">';
-      rounds[r].forEach(function (m) { html += matchRowHTML(m); });
-      html += '</div></div>';
+      [1, 2].forEach(function (s) {
+        var list = rounds[r][s];
+        if (!list || !list.length) return;
+        var sm = sessionMeta(s);
+        html += '<div class="round-title" style="margin:10px 2px 6px"><span class="dot" style="background:' +
+          (s === 1 ? 'var(--football)' : 'var(--basketball)') + '"></span>' +
+          esc(sm.label) + '<span class="week">' + esc(sm.desc) + '</span></div>';
+        html += '<div class="card">';
+        list.forEach(function (m) { html += matchRowHTML(m); });
+        html += '</div>';
+      });
+      html += '</div>';
     });
     if (READONLY) {
       html += '<div class="hint" style="text-align:center;padding:2px 0 10px">' +
@@ -311,26 +328,40 @@
   }
 
   /* ---------- 渲染：积分榜 ---------- */
+  function groupTable(sport, parity, title) {
+    var rows = standings(sport, parity);
+    var unit = sport === 'football' ? '球' : '分';
+    var html = '<div class="round-title" style="margin:8px 2px 6px"><span class="dot" style="background:' +
+      (sport === 'football' ? 'var(--football)' : 'var(--basketball)') + '"></span>' + title + '</div>';
+    if (!rows.length) { return html + '<div class="card"><div class="empty">暂无数据</div></div>'; }
+    html += '<div class="card"><table><thead><tr><th class="rk"></th>' +
+      '<th style="text-align:left;padding-left:12px">班级</th><th>场</th><th>胜</th><th>平</th><th>负</th>' +
+      '<th>进' + unit + '</th><th>失' + unit + '</th><th>净</th><th>积分</th></tr></thead><tbody>';
+    rows.forEach(function (r, i) {
+      var cls = i === 0 ? 'rank1' : (i === 1 ? 'rank2' : (i === 2 ? 'rank3' : ''));
+      html += '<tr class="' + cls + '"><td class="rk"><span>' + (i + 1) + '</span></td>' +
+        '<td class="name">' + teamName(r.cls) + '</td><td class="num">' + r.p + '</td>' +
+        '<td class="num">' + r.w + '</td><td class="num">' + r.d + '</td><td class="num">' + r.l + '</td>' +
+        '<td class="num">' + r.gf + '</td><td class="num">' + r.ga + '</td>' +
+        '<td class="num">' + (r.gd > 0 ? '+' : '') + r.gd + '</td>' +
+        '<td class="num" style="font-weight:800">' + r.pts + '</td></tr>';
+    });
+    html += '</tbody></table></div>';
+    return html;
+  }
+
   function standingsHTML() {
-    var html = '';
+    var html = '<div class="hint" style="padding:0 2px 10px">两组班分别排名（单数组班和双数组班之间不交叉比赛）</div>';
     ['football', 'basketball'].forEach(function (sp) {
-      var rows = standings(sp);
-      var unit = sp === 'football' ? '球' : '分';
-      html += '<div class="card"><div class="card-hd"><h2>' + (sp === 'football' ? '⚽ 足球积分榜' : '🏀 篮球积分榜') +
-        '</h2><span class="sub">' + (sp === 'football' ? '单号班' : '双号班') + '</span></div>';
-      if (!rows.length) { html += '<div class="empty">暂无数据</div></div>'; return; }
-      html += '<table><thead><tr><th class="rk"></th><th style="text-align:left;padding-left:12px">班级</th><th>场</th><th>胜</th><th>平</th><th>负</th><th>进' + unit + '</th><th>失' + unit + '</th><th>净</th><th>积分</th></tr></thead><tbody>';
-      rows.forEach(function (r, i) {
-        var cls = i === 0 ? 'rank1' : (i === 1 ? 'rank2' : (i === 2 ? 'rank3' : ''));
-        html += '<tr class="' + cls + '"><td class="rk"><span>' + (i + 1) + '</span></td>' +
-          '<td class="name">' + teamName(r.cls) + '</td><td class="num">' + r.p + '</td>' +
-          '<td class="num">' + r.w + '</td><td class="num">' + r.d + '</td><td class="num">' + r.l + '</td>' +
-          '<td class="num">' + r.gf + '</td><td class="num">' + r.ga + '</td>' +
-          '<td class="num">' + (r.gd > 0 ? '+' : '') + r.gd + '</td>' +
-          '<td class="num" style="font-weight:800">' + r.pts + '</td></tr>';
-      });
-      html += '</tbody></table>';
-      html += '<div class="legend">胜' + (CFG.points || {}).win + '分 · 平' + (CFG.points || {}).draw + '分 · 负' + (CFG.points || {}).lose + '分；同分先比净' + unit + '，再比进' + unit + '</div></div>';
+      html += '<div class="card-hd" style="border:1px solid var(--line);border-radius:14px 14px 0 0;background:#fff">' +
+        '<h2>' + (sp === 'football' ? '⚽ 足球积分榜' : '🏀 篮球积分榜') + '</h2>' +
+        '<span class="sub">16 个班全部参加</span></div>';
+      html += groupTable(sp, 1, '单数组班（1/3/5/7/9/11/13/15班）');
+      html += groupTable(sp, 0, '双数组班（2/4/6/8/10/12/14/16班）');
+      html += '<div class="legend" style="border:1px solid var(--line);border-top:none;border-radius:0 0 14px 14px;background:#fff">' +
+        '胜' + (CFG.points || {}).win + '分 · 平' + (CFG.points || {}).draw + '分 · 负' + (CFG.points || {}).lose +
+        '分；同分先比净' + (sp === 'football' ? '球' : '分') + '，再比进' + (sp === 'football' ? '球' : '分') + '</div>';
+      html += '<div style="height:12px"></div>';
     });
     return html;
   }
@@ -370,7 +401,7 @@
       html += '<div class="card"><div class="card-hd"><h2>明细</h2><span class="sub">点击可修改</span></div>';
       list.forEach(function (m) {
         html += '<div class="att-item" data-id="' + esc(m.id) + '">' +
-          '<div class="t">' + sportName(m.sport) + ' 第' + m.round + '轮 · ' + teamName(m.a) + ' vs ' + teamName(m.b) + '</div>' +
+          '<div class="t">' + sportName(m.sport) + ' 第' + m.round + '轮' + sessionMeta(m.session || 1).label + ' · ' + teamName(m.a) + ' vs ' + teamName(m.b) + '</div>' +
           '<div class="d">' + teamName(m.a) + '：' + (m.attA.count || 0) + '人' + (m.attA.names ? '（' + esc(m.attA.names) + '）' : '') +
           ' ｜ ' + teamName(m.b) + '：' + (m.attB.count || 0) + '人' + (m.attB.names ? '（' + esc(m.attB.names) + '）' : '') + '</div>' +
           '</div>';
@@ -450,7 +481,8 @@
     var m = (DATA.matches || []).filter(function (x) { return x.id === id; })[0];
     if (!m) return;
     var done = m.status === 'finished' && m.scoreA != null;
-    var html = '<div class="sheet-hd"><h3>' + sportName(m.sport) + ' 第' + m.round + '轮 · ' + teamName(m.a) + ' vs ' + teamName(m.b) + '</h3>' +
+    var html = '<div class="sheet-hd"><h3>' + sportName(m.sport) + ' 第' + m.round + '轮' +
+      sessionMeta(m.session || 1).label + ' · ' + teamName(m.a) + ' vs ' + teamName(m.b) + '</h3>' +
       '<button class="close" data-close>×</button></div><div class="sheet-body">';
 
     html += '<div class="hint" style="margin-bottom:10px">📍 ' + esc(m.venue || '未指定场地') +

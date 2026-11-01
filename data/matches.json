@@ -1,5 +1,5 @@
 {
-  "version": 1,
+  "version": 2,
   "title": "初一年级班级球类联赛",
   "rounds": [
     {
@@ -28,11 +28,24 @@
       "label": "第5轮"
     }
   ],
+  "sessions": [
+    {
+      "session": 1,
+      "label": "第一节",
+      "desc": "单数组班踢足球 · 双数组班打篮球"
+    },
+    {
+      "session": 2,
+      "label": "第二节",
+      "desc": "单数组班打篮球 · 双数组班踢足球"
+    }
+  ],
   "schedulePhotos": [],
   "matches": [
     {
-      "id": "F1-1",
+      "id": "r1s1-F1",
       "round": 1,
+      "session": 1,
       "sport": "football",
       "a": 1,
       "b": 3,
@@ -53,8 +66,9 @@
       "note": ""
     },
     {
-      "id": "F1-2",
+      "id": "r1s1-F2",
       "round": 1,
+      "session": 1,
       "sport": "football",
       "a": 5,
       "b": 7,
@@ -75,8 +89,9 @@
       "note": ""
     },
     {
-      "id": "F1-3",
+      "id": "r1s1-F3",
       "round": 1,
+      "session": 1,
       "sport": "football",
       "a": 9,
       "b": 11,
@@ -97,8 +112,9 @@
       "note": ""
     },
     {
-      "id": "F1-4",
+      "id": "r1s1-F4",
       "round": 1,
+      "session": 1,
       "sport": "football",
       "a": 13,
       "b": 15,
@@ -119,360 +135,9 @@
       "note": ""
     },
     {
-      "id": "F2-1",
-      "round": 2,
-      "sport": "football",
-      "a": 1,
-      "b": 5,
-      "venue": "2/6号场地",
-      "date": "",
-      "scoreA": null,
-      "scoreB": null,
-      "status": "pending",
-      "attA": {
-        "count": null,
-        "names": ""
-      },
-      "attB": {
-        "count": null,
-        "names": ""
-      },
-      "photos": [],
-      "note": ""
-    },
-    {
-      "id": "F2-2",
-      "round": 2,
-      "sport": "football",
-      "a": 3,
-      "b": 9,
-      "venue": "3/7号场地",
-      "date": "",
-      "scoreA": null,
-      "scoreB": null,
-      "status": "pending",
-      "attA": {
-        "count": null,
-        "names": ""
-      },
-      "attB": {
-        "count": null,
-        "names": ""
-      },
-      "photos": [],
-      "note": ""
-    },
-    {
-      "id": "F2-3",
-      "round": 2,
-      "sport": "football",
-      "a": 7,
-      "b": 13,
-      "venue": "4/8号场地",
-      "date": "",
-      "scoreA": null,
-      "scoreB": null,
-      "status": "pending",
-      "attA": {
-        "count": null,
-        "names": ""
-      },
-      "attB": {
-        "count": null,
-        "names": ""
-      },
-      "photos": [],
-      "note": ""
-    },
-    {
-      "id": "F2-4",
-      "round": 2,
-      "sport": "football",
-      "a": 11,
-      "b": 15,
-      "venue": "1/5号场地",
-      "date": "",
-      "scoreA": null,
-      "scoreB": null,
-      "status": "pending",
-      "attA": {
-        "count": null,
-        "names": ""
-      },
-      "attB": {
-        "count": null,
-        "names": ""
-      },
-      "photos": [],
-      "note": ""
-    },
-    {
-      "id": "F3-1",
-      "round": 3,
-      "sport": "football",
-      "a": 1,
-      "b": 7,
-      "venue": "3/7号场地",
-      "date": "",
-      "scoreA": null,
-      "scoreB": null,
-      "status": "pending",
-      "attA": {
-        "count": null,
-        "names": ""
-      },
-      "attB": {
-        "count": null,
-        "names": ""
-      },
-      "photos": [],
-      "note": ""
-    },
-    {
-      "id": "F3-2",
-      "round": 3,
-      "sport": "football",
-      "a": 3,
-      "b": 13,
-      "venue": "4/8号场地",
-      "date": "",
-      "scoreA": null,
-      "scoreB": null,
-      "status": "pending",
-      "attA": {
-        "count": null,
-        "names": ""
-      },
-      "attB": {
-        "count": null,
-        "names": ""
-      },
-      "photos": [],
-      "note": ""
-    },
-    {
-      "id": "F3-3",
-      "round": 3,
-      "sport": "football",
-      "a": 5,
-      "b": 15,
-      "venue": "1/5号场地",
-      "date": "",
-      "scoreA": null,
-      "scoreB": null,
-      "status": "pending",
-      "attA": {
-        "count": null,
-        "names": ""
-      },
-      "attB": {
-        "count": null,
-        "names": ""
-      },
-      "photos": [],
-      "note": ""
-    },
-    {
-      "id": "F3-4",
-      "round": 3,
-      "sport": "football",
-      "a": 9,
-      "b": 11,
-      "venue": "2/6号场地",
-      "date": "",
-      "scoreA": null,
-      "scoreB": null,
-      "status": "pending",
-      "attA": {
-        "count": null,
-        "names": ""
-      },
-      "attB": {
-        "count": null,
-        "names": ""
-      },
-      "photos": [],
-      "note": ""
-    },
-    {
-      "id": "F4-1",
-      "round": 4,
-      "sport": "football",
-      "a": 1,
-      "b": 9,
-      "venue": "4/8号场地",
-      "date": "",
-      "scoreA": null,
-      "scoreB": null,
-      "status": "pending",
-      "attA": {
-        "count": null,
-        "names": ""
-      },
-      "attB": {
-        "count": null,
-        "names": ""
-      },
-      "photos": [],
-      "note": ""
-    },
-    {
-      "id": "F4-2",
-      "round": 4,
-      "sport": "football",
-      "a": 3,
-      "b": 15,
-      "venue": "1/5号场地",
-      "date": "",
-      "scoreA": null,
-      "scoreB": null,
-      "status": "pending",
-      "attA": {
-        "count": null,
-        "names": ""
-      },
-      "attB": {
-        "count": null,
-        "names": ""
-      },
-      "photos": [],
-      "note": ""
-    },
-    {
-      "id": "F4-3",
-      "round": 4,
-      "sport": "football",
-      "a": 5,
-      "b": 11,
-      "venue": "2/6号场地",
-      "date": "",
-      "scoreA": null,
-      "scoreB": null,
-      "status": "pending",
-      "attA": {
-        "count": null,
-        "names": ""
-      },
-      "attB": {
-        "count": null,
-        "names": ""
-      },
-      "photos": [],
-      "note": ""
-    },
-    {
-      "id": "F4-4",
-      "round": 4,
-      "sport": "football",
-      "a": 7,
-      "b": 13,
-      "venue": "3/7号场地",
-      "date": "",
-      "scoreA": null,
-      "scoreB": null,
-      "status": "pending",
-      "attA": {
-        "count": null,
-        "names": ""
-      },
-      "attB": {
-        "count": null,
-        "names": ""
-      },
-      "photos": [],
-      "note": ""
-    },
-    {
-      "id": "F5-1",
-      "round": 5,
-      "sport": "football",
-      "a": 1,
-      "b": 11,
-      "venue": "1/5号场地",
-      "date": "",
-      "scoreA": null,
-      "scoreB": null,
-      "status": "pending",
-      "attA": {
-        "count": null,
-        "names": ""
-      },
-      "attB": {
-        "count": null,
-        "names": ""
-      },
-      "photos": [],
-      "note": ""
-    },
-    {
-      "id": "F5-2",
-      "round": 5,
-      "sport": "football",
-      "a": 3,
-      "b": 7,
-      "venue": "2/6号场地",
-      "date": "",
-      "scoreA": null,
-      "scoreB": null,
-      "status": "pending",
-      "attA": {
-        "count": null,
-        "names": ""
-      },
-      "attB": {
-        "count": null,
-        "names": ""
-      },
-      "photos": [],
-      "note": ""
-    },
-    {
-      "id": "F5-3",
-      "round": 5,
-      "sport": "football",
-      "a": 5,
-      "b": 13,
-      "venue": "3/7号场地",
-      "date": "",
-      "scoreA": null,
-      "scoreB": null,
-      "status": "pending",
-      "attA": {
-        "count": null,
-        "names": ""
-      },
-      "attB": {
-        "count": null,
-        "names": ""
-      },
-      "photos": [],
-      "note": ""
-    },
-    {
-      "id": "F5-4",
-      "round": 5,
-      "sport": "football",
-      "a": 9,
-      "b": 15,
-      "venue": "4/8号场地",
-      "date": "",
-      "scoreA": null,
-      "scoreB": null,
-      "status": "pending",
-      "attA": {
-        "count": null,
-        "names": ""
-      },
-      "attB": {
-        "count": null,
-        "names": ""
-      },
-      "photos": [],
-      "note": ""
-    },
-    {
-      "id": "B1-1",
+      "id": "r1s1-B1",
       "round": 1,
+      "session": 1,
       "sport": "basketball",
       "a": 2,
       "b": 4,
@@ -493,8 +158,9 @@
       "note": ""
     },
     {
-      "id": "B1-2",
+      "id": "r1s1-B2",
       "round": 1,
+      "session": 1,
       "sport": "basketball",
       "a": 6,
       "b": 8,
@@ -515,8 +181,9 @@
       "note": ""
     },
     {
-      "id": "B1-3",
+      "id": "r1s1-B3",
       "round": 1,
+      "session": 1,
       "sport": "basketball",
       "a": 10,
       "b": 12,
@@ -537,8 +204,9 @@
       "note": ""
     },
     {
-      "id": "B1-4",
+      "id": "r1s1-B4",
       "round": 1,
+      "session": 1,
       "sport": "basketball",
       "a": 14,
       "b": 16,
@@ -559,8 +227,285 @@
       "note": ""
     },
     {
-      "id": "B2-1",
+      "id": "r1s2-B1",
+      "round": 1,
+      "session": 2,
+      "sport": "basketball",
+      "a": 1,
+      "b": 3,
+      "venue": "5/1号场地",
+      "date": "",
+      "scoreA": null,
+      "scoreB": null,
+      "status": "pending",
+      "attA": {
+        "count": null,
+        "names": ""
+      },
+      "attB": {
+        "count": null,
+        "names": ""
+      },
+      "photos": [],
+      "note": ""
+    },
+    {
+      "id": "r1s2-B2",
+      "round": 1,
+      "session": 2,
+      "sport": "basketball",
+      "a": 5,
+      "b": 7,
+      "venue": "6/2号场地",
+      "date": "",
+      "scoreA": null,
+      "scoreB": null,
+      "status": "pending",
+      "attA": {
+        "count": null,
+        "names": ""
+      },
+      "attB": {
+        "count": null,
+        "names": ""
+      },
+      "photos": [],
+      "note": ""
+    },
+    {
+      "id": "r1s2-B3",
+      "round": 1,
+      "session": 2,
+      "sport": "basketball",
+      "a": 9,
+      "b": 11,
+      "venue": "7/3号场地",
+      "date": "",
+      "scoreA": null,
+      "scoreB": null,
+      "status": "pending",
+      "attA": {
+        "count": null,
+        "names": ""
+      },
+      "attB": {
+        "count": null,
+        "names": ""
+      },
+      "photos": [],
+      "note": ""
+    },
+    {
+      "id": "r1s2-B4",
+      "round": 1,
+      "session": 2,
+      "sport": "basketball",
+      "a": 13,
+      "b": 15,
+      "venue": "8/4号场地",
+      "date": "",
+      "scoreA": null,
+      "scoreB": null,
+      "status": "pending",
+      "attA": {
+        "count": null,
+        "names": ""
+      },
+      "attB": {
+        "count": null,
+        "names": ""
+      },
+      "photos": [],
+      "note": ""
+    },
+    {
+      "id": "r1s2-F1",
+      "round": 1,
+      "session": 2,
+      "sport": "football",
+      "a": 2,
+      "b": 4,
+      "venue": "1/5号场地",
+      "date": "",
+      "scoreA": null,
+      "scoreB": null,
+      "status": "pending",
+      "attA": {
+        "count": null,
+        "names": ""
+      },
+      "attB": {
+        "count": null,
+        "names": ""
+      },
+      "photos": [],
+      "note": ""
+    },
+    {
+      "id": "r1s2-F2",
+      "round": 1,
+      "session": 2,
+      "sport": "football",
+      "a": 6,
+      "b": 8,
+      "venue": "2/6号场地",
+      "date": "",
+      "scoreA": null,
+      "scoreB": null,
+      "status": "pending",
+      "attA": {
+        "count": null,
+        "names": ""
+      },
+      "attB": {
+        "count": null,
+        "names": ""
+      },
+      "photos": [],
+      "note": ""
+    },
+    {
+      "id": "r1s2-F3",
+      "round": 1,
+      "session": 2,
+      "sport": "football",
+      "a": 10,
+      "b": 12,
+      "venue": "3/7号场地",
+      "date": "",
+      "scoreA": null,
+      "scoreB": null,
+      "status": "pending",
+      "attA": {
+        "count": null,
+        "names": ""
+      },
+      "attB": {
+        "count": null,
+        "names": ""
+      },
+      "photos": [],
+      "note": ""
+    },
+    {
+      "id": "r1s2-F4",
+      "round": 1,
+      "session": 2,
+      "sport": "football",
+      "a": 14,
+      "b": 16,
+      "venue": "4/8号场地",
+      "date": "",
+      "scoreA": null,
+      "scoreB": null,
+      "status": "pending",
+      "attA": {
+        "count": null,
+        "names": ""
+      },
+      "attB": {
+        "count": null,
+        "names": ""
+      },
+      "photos": [],
+      "note": ""
+    },
+    {
+      "id": "r2s1-F1",
       "round": 2,
+      "session": 1,
+      "sport": "football",
+      "a": 1,
+      "b": 5,
+      "venue": "2/6号场地",
+      "date": "",
+      "scoreA": null,
+      "scoreB": null,
+      "status": "pending",
+      "attA": {
+        "count": null,
+        "names": ""
+      },
+      "attB": {
+        "count": null,
+        "names": ""
+      },
+      "photos": [],
+      "note": ""
+    },
+    {
+      "id": "r2s1-F2",
+      "round": 2,
+      "session": 1,
+      "sport": "football",
+      "a": 3,
+      "b": 9,
+      "venue": "3/7号场地",
+      "date": "",
+      "scoreA": null,
+      "scoreB": null,
+      "status": "pending",
+      "attA": {
+        "count": null,
+        "names": ""
+      },
+      "attB": {
+        "count": null,
+        "names": ""
+      },
+      "photos": [],
+      "note": ""
+    },
+    {
+      "id": "r2s1-F3",
+      "round": 2,
+      "session": 1,
+      "sport": "football",
+      "a": 7,
+      "b": 13,
+      "venue": "4/8号场地",
+      "date": "",
+      "scoreA": null,
+      "scoreB": null,
+      "status": "pending",
+      "attA": {
+        "count": null,
+        "names": ""
+      },
+      "attB": {
+        "count": null,
+        "names": ""
+      },
+      "photos": [],
+      "note": ""
+    },
+    {
+      "id": "r2s1-F4",
+      "round": 2,
+      "session": 1,
+      "sport": "football",
+      "a": 11,
+      "b": 15,
+      "venue": "1/5号场地",
+      "date": "",
+      "scoreA": null,
+      "scoreB": null,
+      "status": "pending",
+      "attA": {
+        "count": null,
+        "names": ""
+      },
+      "attB": {
+        "count": null,
+        "names": ""
+      },
+      "photos": [],
+      "note": ""
+    },
+    {
+      "id": "r2s1-B1",
+      "round": 2,
+      "session": 1,
       "sport": "basketball",
       "a": 2,
       "b": 6,
@@ -581,8 +526,9 @@
       "note": ""
     },
     {
-      "id": "B2-2",
+      "id": "r2s1-B2",
       "round": 2,
+      "session": 1,
       "sport": "basketball",
       "a": 4,
       "b": 10,
@@ -603,8 +549,9 @@
       "note": ""
     },
     {
-      "id": "B2-3",
+      "id": "r2s1-B3",
       "round": 2,
+      "session": 1,
       "sport": "basketball",
       "a": 8,
       "b": 14,
@@ -625,8 +572,9 @@
       "note": ""
     },
     {
-      "id": "B2-4",
+      "id": "r2s1-B4",
       "round": 2,
+      "session": 1,
       "sport": "basketball",
       "a": 12,
       "b": 16,
@@ -647,8 +595,285 @@
       "note": ""
     },
     {
-      "id": "B3-1",
+      "id": "r2s2-B1",
+      "round": 2,
+      "session": 2,
+      "sport": "basketball",
+      "a": 1,
+      "b": 5,
+      "venue": "6/2号场地",
+      "date": "",
+      "scoreA": null,
+      "scoreB": null,
+      "status": "pending",
+      "attA": {
+        "count": null,
+        "names": ""
+      },
+      "attB": {
+        "count": null,
+        "names": ""
+      },
+      "photos": [],
+      "note": ""
+    },
+    {
+      "id": "r2s2-B2",
+      "round": 2,
+      "session": 2,
+      "sport": "basketball",
+      "a": 3,
+      "b": 9,
+      "venue": "7/3号场地",
+      "date": "",
+      "scoreA": null,
+      "scoreB": null,
+      "status": "pending",
+      "attA": {
+        "count": null,
+        "names": ""
+      },
+      "attB": {
+        "count": null,
+        "names": ""
+      },
+      "photos": [],
+      "note": ""
+    },
+    {
+      "id": "r2s2-B3",
+      "round": 2,
+      "session": 2,
+      "sport": "basketball",
+      "a": 7,
+      "b": 13,
+      "venue": "8/4号场地",
+      "date": "",
+      "scoreA": null,
+      "scoreB": null,
+      "status": "pending",
+      "attA": {
+        "count": null,
+        "names": ""
+      },
+      "attB": {
+        "count": null,
+        "names": ""
+      },
+      "photos": [],
+      "note": ""
+    },
+    {
+      "id": "r2s2-B4",
+      "round": 2,
+      "session": 2,
+      "sport": "basketball",
+      "a": 11,
+      "b": 15,
+      "venue": "5/1号场地",
+      "date": "",
+      "scoreA": null,
+      "scoreB": null,
+      "status": "pending",
+      "attA": {
+        "count": null,
+        "names": ""
+      },
+      "attB": {
+        "count": null,
+        "names": ""
+      },
+      "photos": [],
+      "note": ""
+    },
+    {
+      "id": "r2s2-F1",
+      "round": 2,
+      "session": 2,
+      "sport": "football",
+      "a": 2,
+      "b": 6,
+      "venue": "2/6号场地",
+      "date": "",
+      "scoreA": null,
+      "scoreB": null,
+      "status": "pending",
+      "attA": {
+        "count": null,
+        "names": ""
+      },
+      "attB": {
+        "count": null,
+        "names": ""
+      },
+      "photos": [],
+      "note": ""
+    },
+    {
+      "id": "r2s2-F2",
+      "round": 2,
+      "session": 2,
+      "sport": "football",
+      "a": 4,
+      "b": 10,
+      "venue": "3/7号场地",
+      "date": "",
+      "scoreA": null,
+      "scoreB": null,
+      "status": "pending",
+      "attA": {
+        "count": null,
+        "names": ""
+      },
+      "attB": {
+        "count": null,
+        "names": ""
+      },
+      "photos": [],
+      "note": ""
+    },
+    {
+      "id": "r2s2-F3",
+      "round": 2,
+      "session": 2,
+      "sport": "football",
+      "a": 8,
+      "b": 14,
+      "venue": "4/8号场地",
+      "date": "",
+      "scoreA": null,
+      "scoreB": null,
+      "status": "pending",
+      "attA": {
+        "count": null,
+        "names": ""
+      },
+      "attB": {
+        "count": null,
+        "names": ""
+      },
+      "photos": [],
+      "note": ""
+    },
+    {
+      "id": "r2s2-F4",
+      "round": 2,
+      "session": 2,
+      "sport": "football",
+      "a": 12,
+      "b": 16,
+      "venue": "1/5号场地",
+      "date": "",
+      "scoreA": null,
+      "scoreB": null,
+      "status": "pending",
+      "attA": {
+        "count": null,
+        "names": ""
+      },
+      "attB": {
+        "count": null,
+        "names": ""
+      },
+      "photos": [],
+      "note": ""
+    },
+    {
+      "id": "r3s1-F1",
       "round": 3,
+      "session": 1,
+      "sport": "football",
+      "a": 1,
+      "b": 7,
+      "venue": "3/7号场地",
+      "date": "",
+      "scoreA": null,
+      "scoreB": null,
+      "status": "pending",
+      "attA": {
+        "count": null,
+        "names": ""
+      },
+      "attB": {
+        "count": null,
+        "names": ""
+      },
+      "photos": [],
+      "note": ""
+    },
+    {
+      "id": "r3s1-F2",
+      "round": 3,
+      "session": 1,
+      "sport": "football",
+      "a": 3,
+      "b": 13,
+      "venue": "4/8号场地",
+      "date": "",
+      "scoreA": null,
+      "scoreB": null,
+      "status": "pending",
+      "attA": {
+        "count": null,
+        "names": ""
+      },
+      "attB": {
+        "count": null,
+        "names": ""
+      },
+      "photos": [],
+      "note": ""
+    },
+    {
+      "id": "r3s1-F3",
+      "round": 3,
+      "session": 1,
+      "sport": "football",
+      "a": 5,
+      "b": 15,
+      "venue": "1/5号场地",
+      "date": "",
+      "scoreA": null,
+      "scoreB": null,
+      "status": "pending",
+      "attA": {
+        "count": null,
+        "names": ""
+      },
+      "attB": {
+        "count": null,
+        "names": ""
+      },
+      "photos": [],
+      "note": ""
+    },
+    {
+      "id": "r3s1-F4",
+      "round": 3,
+      "session": 1,
+      "sport": "football",
+      "a": 9,
+      "b": 11,
+      "venue": "2/6号场地",
+      "date": "",
+      "scoreA": null,
+      "scoreB": null,
+      "status": "pending",
+      "attA": {
+        "count": null,
+        "names": ""
+      },
+      "attB": {
+        "count": null,
+        "names": ""
+      },
+      "photos": [],
+      "note": ""
+    },
+    {
+      "id": "r3s1-B1",
+      "round": 3,
+      "session": 1,
       "sport": "basketball",
       "a": 2,
       "b": 8,
@@ -669,8 +894,9 @@
       "note": ""
     },
     {
-      "id": "B3-2",
+      "id": "r3s1-B2",
       "round": 3,
+      "session": 1,
       "sport": "basketball",
       "a": 4,
       "b": 14,
@@ -691,8 +917,9 @@
       "note": ""
     },
     {
-      "id": "B3-3",
+      "id": "r3s1-B3",
       "round": 3,
+      "session": 1,
       "sport": "basketball",
       "a": 6,
       "b": 16,
@@ -713,8 +940,9 @@
       "note": ""
     },
     {
-      "id": "B3-4",
+      "id": "r3s1-B4",
       "round": 3,
+      "session": 1,
       "sport": "basketball",
       "a": 10,
       "b": 12,
@@ -735,8 +963,285 @@
       "note": ""
     },
     {
-      "id": "B4-1",
+      "id": "r3s2-B1",
+      "round": 3,
+      "session": 2,
+      "sport": "basketball",
+      "a": 1,
+      "b": 7,
+      "venue": "7/3号场地",
+      "date": "",
+      "scoreA": null,
+      "scoreB": null,
+      "status": "pending",
+      "attA": {
+        "count": null,
+        "names": ""
+      },
+      "attB": {
+        "count": null,
+        "names": ""
+      },
+      "photos": [],
+      "note": ""
+    },
+    {
+      "id": "r3s2-B2",
+      "round": 3,
+      "session": 2,
+      "sport": "basketball",
+      "a": 3,
+      "b": 13,
+      "venue": "8/4号场地",
+      "date": "",
+      "scoreA": null,
+      "scoreB": null,
+      "status": "pending",
+      "attA": {
+        "count": null,
+        "names": ""
+      },
+      "attB": {
+        "count": null,
+        "names": ""
+      },
+      "photos": [],
+      "note": ""
+    },
+    {
+      "id": "r3s2-B3",
+      "round": 3,
+      "session": 2,
+      "sport": "basketball",
+      "a": 5,
+      "b": 15,
+      "venue": "5/1号场地",
+      "date": "",
+      "scoreA": null,
+      "scoreB": null,
+      "status": "pending",
+      "attA": {
+        "count": null,
+        "names": ""
+      },
+      "attB": {
+        "count": null,
+        "names": ""
+      },
+      "photos": [],
+      "note": ""
+    },
+    {
+      "id": "r3s2-B4",
+      "round": 3,
+      "session": 2,
+      "sport": "basketball",
+      "a": 9,
+      "b": 11,
+      "venue": "6/2号场地",
+      "date": "",
+      "scoreA": null,
+      "scoreB": null,
+      "status": "pending",
+      "attA": {
+        "count": null,
+        "names": ""
+      },
+      "attB": {
+        "count": null,
+        "names": ""
+      },
+      "photos": [],
+      "note": ""
+    },
+    {
+      "id": "r3s2-F1",
+      "round": 3,
+      "session": 2,
+      "sport": "football",
+      "a": 2,
+      "b": 8,
+      "venue": "3/7号场地",
+      "date": "",
+      "scoreA": null,
+      "scoreB": null,
+      "status": "pending",
+      "attA": {
+        "count": null,
+        "names": ""
+      },
+      "attB": {
+        "count": null,
+        "names": ""
+      },
+      "photos": [],
+      "note": ""
+    },
+    {
+      "id": "r3s2-F2",
+      "round": 3,
+      "session": 2,
+      "sport": "football",
+      "a": 4,
+      "b": 14,
+      "venue": "4/8号场地",
+      "date": "",
+      "scoreA": null,
+      "scoreB": null,
+      "status": "pending",
+      "attA": {
+        "count": null,
+        "names": ""
+      },
+      "attB": {
+        "count": null,
+        "names": ""
+      },
+      "photos": [],
+      "note": ""
+    },
+    {
+      "id": "r3s2-F3",
+      "round": 3,
+      "session": 2,
+      "sport": "football",
+      "a": 6,
+      "b": 16,
+      "venue": "1/5号场地",
+      "date": "",
+      "scoreA": null,
+      "scoreB": null,
+      "status": "pending",
+      "attA": {
+        "count": null,
+        "names": ""
+      },
+      "attB": {
+        "count": null,
+        "names": ""
+      },
+      "photos": [],
+      "note": ""
+    },
+    {
+      "id": "r3s2-F4",
+      "round": 3,
+      "session": 2,
+      "sport": "football",
+      "a": 10,
+      "b": 12,
+      "venue": "2/6号场地",
+      "date": "",
+      "scoreA": null,
+      "scoreB": null,
+      "status": "pending",
+      "attA": {
+        "count": null,
+        "names": ""
+      },
+      "attB": {
+        "count": null,
+        "names": ""
+      },
+      "photos": [],
+      "note": ""
+    },
+    {
+      "id": "r4s1-F1",
       "round": 4,
+      "session": 1,
+      "sport": "football",
+      "a": 1,
+      "b": 9,
+      "venue": "4/8号场地",
+      "date": "",
+      "scoreA": null,
+      "scoreB": null,
+      "status": "pending",
+      "attA": {
+        "count": null,
+        "names": ""
+      },
+      "attB": {
+        "count": null,
+        "names": ""
+      },
+      "photos": [],
+      "note": ""
+    },
+    {
+      "id": "r4s1-F2",
+      "round": 4,
+      "session": 1,
+      "sport": "football",
+      "a": 3,
+      "b": 15,
+      "venue": "1/5号场地",
+      "date": "",
+      "scoreA": null,
+      "scoreB": null,
+      "status": "pending",
+      "attA": {
+        "count": null,
+        "names": ""
+      },
+      "attB": {
+        "count": null,
+        "names": ""
+      },
+      "photos": [],
+      "note": ""
+    },
+    {
+      "id": "r4s1-F3",
+      "round": 4,
+      "session": 1,
+      "sport": "football",
+      "a": 5,
+      "b": 11,
+      "venue": "2/6号场地",
+      "date": "",
+      "scoreA": null,
+      "scoreB": null,
+      "status": "pending",
+      "attA": {
+        "count": null,
+        "names": ""
+      },
+      "attB": {
+        "count": null,
+        "names": ""
+      },
+      "photos": [],
+      "note": ""
+    },
+    {
+      "id": "r4s1-F4",
+      "round": 4,
+      "session": 1,
+      "sport": "football",
+      "a": 7,
+      "b": 13,
+      "venue": "3/7号场地",
+      "date": "",
+      "scoreA": null,
+      "scoreB": null,
+      "status": "pending",
+      "attA": {
+        "count": null,
+        "names": ""
+      },
+      "attB": {
+        "count": null,
+        "names": ""
+      },
+      "photos": [],
+      "note": ""
+    },
+    {
+      "id": "r4s1-B1",
+      "round": 4,
+      "session": 1,
       "sport": "basketball",
       "a": 2,
       "b": 10,
@@ -757,8 +1262,9 @@
       "note": ""
     },
     {
-      "id": "B4-2",
+      "id": "r4s1-B2",
       "round": 4,
+      "session": 1,
       "sport": "basketball",
       "a": 4,
       "b": 16,
@@ -779,8 +1285,9 @@
       "note": ""
     },
     {
-      "id": "B4-3",
+      "id": "r4s1-B3",
       "round": 4,
+      "session": 1,
       "sport": "basketball",
       "a": 6,
       "b": 12,
@@ -801,8 +1308,9 @@
       "note": ""
     },
     {
-      "id": "B4-4",
+      "id": "r4s1-B4",
       "round": 4,
+      "session": 1,
       "sport": "basketball",
       "a": 8,
       "b": 14,
@@ -823,8 +1331,285 @@
       "note": ""
     },
     {
-      "id": "B5-1",
+      "id": "r4s2-B1",
+      "round": 4,
+      "session": 2,
+      "sport": "basketball",
+      "a": 1,
+      "b": 9,
+      "venue": "8/4号场地",
+      "date": "",
+      "scoreA": null,
+      "scoreB": null,
+      "status": "pending",
+      "attA": {
+        "count": null,
+        "names": ""
+      },
+      "attB": {
+        "count": null,
+        "names": ""
+      },
+      "photos": [],
+      "note": ""
+    },
+    {
+      "id": "r4s2-B2",
+      "round": 4,
+      "session": 2,
+      "sport": "basketball",
+      "a": 3,
+      "b": 15,
+      "venue": "5/1号场地",
+      "date": "",
+      "scoreA": null,
+      "scoreB": null,
+      "status": "pending",
+      "attA": {
+        "count": null,
+        "names": ""
+      },
+      "attB": {
+        "count": null,
+        "names": ""
+      },
+      "photos": [],
+      "note": ""
+    },
+    {
+      "id": "r4s2-B3",
+      "round": 4,
+      "session": 2,
+      "sport": "basketball",
+      "a": 5,
+      "b": 11,
+      "venue": "6/2号场地",
+      "date": "",
+      "scoreA": null,
+      "scoreB": null,
+      "status": "pending",
+      "attA": {
+        "count": null,
+        "names": ""
+      },
+      "attB": {
+        "count": null,
+        "names": ""
+      },
+      "photos": [],
+      "note": ""
+    },
+    {
+      "id": "r4s2-B4",
+      "round": 4,
+      "session": 2,
+      "sport": "basketball",
+      "a": 7,
+      "b": 13,
+      "venue": "7/3号场地",
+      "date": "",
+      "scoreA": null,
+      "scoreB": null,
+      "status": "pending",
+      "attA": {
+        "count": null,
+        "names": ""
+      },
+      "attB": {
+        "count": null,
+        "names": ""
+      },
+      "photos": [],
+      "note": ""
+    },
+    {
+      "id": "r4s2-F1",
+      "round": 4,
+      "session": 2,
+      "sport": "football",
+      "a": 2,
+      "b": 10,
+      "venue": "4/8号场地",
+      "date": "",
+      "scoreA": null,
+      "scoreB": null,
+      "status": "pending",
+      "attA": {
+        "count": null,
+        "names": ""
+      },
+      "attB": {
+        "count": null,
+        "names": ""
+      },
+      "photos": [],
+      "note": ""
+    },
+    {
+      "id": "r4s2-F2",
+      "round": 4,
+      "session": 2,
+      "sport": "football",
+      "a": 4,
+      "b": 16,
+      "venue": "1/5号场地",
+      "date": "",
+      "scoreA": null,
+      "scoreB": null,
+      "status": "pending",
+      "attA": {
+        "count": null,
+        "names": ""
+      },
+      "attB": {
+        "count": null,
+        "names": ""
+      },
+      "photos": [],
+      "note": ""
+    },
+    {
+      "id": "r4s2-F3",
+      "round": 4,
+      "session": 2,
+      "sport": "football",
+      "a": 6,
+      "b": 12,
+      "venue": "2/6号场地",
+      "date": "",
+      "scoreA": null,
+      "scoreB": null,
+      "status": "pending",
+      "attA": {
+        "count": null,
+        "names": ""
+      },
+      "attB": {
+        "count": null,
+        "names": ""
+      },
+      "photos": [],
+      "note": ""
+    },
+    {
+      "id": "r4s2-F4",
+      "round": 4,
+      "session": 2,
+      "sport": "football",
+      "a": 8,
+      "b": 14,
+      "venue": "3/7号场地",
+      "date": "",
+      "scoreA": null,
+      "scoreB": null,
+      "status": "pending",
+      "attA": {
+        "count": null,
+        "names": ""
+      },
+      "attB": {
+        "count": null,
+        "names": ""
+      },
+      "photos": [],
+      "note": ""
+    },
+    {
+      "id": "r5s1-F1",
       "round": 5,
+      "session": 1,
+      "sport": "football",
+      "a": 1,
+      "b": 11,
+      "venue": "1/5号场地",
+      "date": "",
+      "scoreA": null,
+      "scoreB": null,
+      "status": "pending",
+      "attA": {
+        "count": null,
+        "names": ""
+      },
+      "attB": {
+        "count": null,
+        "names": ""
+      },
+      "photos": [],
+      "note": ""
+    },
+    {
+      "id": "r5s1-F2",
+      "round": 5,
+      "session": 1,
+      "sport": "football",
+      "a": 3,
+      "b": 7,
+      "venue": "2/6号场地",
+      "date": "",
+      "scoreA": null,
+      "scoreB": null,
+      "status": "pending",
+      "attA": {
+        "count": null,
+        "names": ""
+      },
+      "attB": {
+        "count": null,
+        "names": ""
+      },
+      "photos": [],
+      "note": ""
+    },
+    {
+      "id": "r5s1-F3",
+      "round": 5,
+      "session": 1,
+      "sport": "football",
+      "a": 5,
+      "b": 13,
+      "venue": "3/7号场地",
+      "date": "",
+      "scoreA": null,
+      "scoreB": null,
+      "status": "pending",
+      "attA": {
+        "count": null,
+        "names": ""
+      },
+      "attB": {
+        "count": null,
+        "names": ""
+      },
+      "photos": [],
+      "note": ""
+    },
+    {
+      "id": "r5s1-F4",
+      "round": 5,
+      "session": 1,
+      "sport": "football",
+      "a": 9,
+      "b": 15,
+      "venue": "4/8号场地",
+      "date": "",
+      "scoreA": null,
+      "scoreB": null,
+      "status": "pending",
+      "attA": {
+        "count": null,
+        "names": ""
+      },
+      "attB": {
+        "count": null,
+        "names": ""
+      },
+      "photos": [],
+      "note": ""
+    },
+    {
+      "id": "r5s1-B1",
+      "round": 5,
+      "session": 1,
       "sport": "basketball",
       "a": 2,
       "b": 12,
@@ -845,8 +1630,9 @@
       "note": ""
     },
     {
-      "id": "B5-2",
+      "id": "r5s1-B2",
       "round": 5,
+      "session": 1,
       "sport": "basketball",
       "a": 4,
       "b": 8,
@@ -867,8 +1653,9 @@
       "note": ""
     },
     {
-      "id": "B5-3",
+      "id": "r5s1-B3",
       "round": 5,
+      "session": 1,
       "sport": "basketball",
       "a": 6,
       "b": 14,
@@ -889,12 +1676,197 @@
       "note": ""
     },
     {
-      "id": "B5-4",
+      "id": "r5s1-B4",
       "round": 5,
+      "session": 1,
       "sport": "basketball",
       "a": 10,
       "b": 16,
       "venue": "8/4号场地",
+      "date": "",
+      "scoreA": null,
+      "scoreB": null,
+      "status": "pending",
+      "attA": {
+        "count": null,
+        "names": ""
+      },
+      "attB": {
+        "count": null,
+        "names": ""
+      },
+      "photos": [],
+      "note": ""
+    },
+    {
+      "id": "r5s2-B1",
+      "round": 5,
+      "session": 2,
+      "sport": "basketball",
+      "a": 1,
+      "b": 11,
+      "venue": "5/1号场地",
+      "date": "",
+      "scoreA": null,
+      "scoreB": null,
+      "status": "pending",
+      "attA": {
+        "count": null,
+        "names": ""
+      },
+      "attB": {
+        "count": null,
+        "names": ""
+      },
+      "photos": [],
+      "note": ""
+    },
+    {
+      "id": "r5s2-B2",
+      "round": 5,
+      "session": 2,
+      "sport": "basketball",
+      "a": 3,
+      "b": 7,
+      "venue": "6/2号场地",
+      "date": "",
+      "scoreA": null,
+      "scoreB": null,
+      "status": "pending",
+      "attA": {
+        "count": null,
+        "names": ""
+      },
+      "attB": {
+        "count": null,
+        "names": ""
+      },
+      "photos": [],
+      "note": ""
+    },
+    {
+      "id": "r5s2-B3",
+      "round": 5,
+      "session": 2,
+      "sport": "basketball",
+      "a": 5,
+      "b": 13,
+      "venue": "7/3号场地",
+      "date": "",
+      "scoreA": null,
+      "scoreB": null,
+      "status": "pending",
+      "attA": {
+        "count": null,
+        "names": ""
+      },
+      "attB": {
+        "count": null,
+        "names": ""
+      },
+      "photos": [],
+      "note": ""
+    },
+    {
+      "id": "r5s2-B4",
+      "round": 5,
+      "session": 2,
+      "sport": "basketball",
+      "a": 9,
+      "b": 15,
+      "venue": "8/4号场地",
+      "date": "",
+      "scoreA": null,
+      "scoreB": null,
+      "status": "pending",
+      "attA": {
+        "count": null,
+        "names": ""
+      },
+      "attB": {
+        "count": null,
+        "names": ""
+      },
+      "photos": [],
+      "note": ""
+    },
+    {
+      "id": "r5s2-F1",
+      "round": 5,
+      "session": 2,
+      "sport": "football",
+      "a": 2,
+      "b": 12,
+      "venue": "1/5号场地",
+      "date": "",
+      "scoreA": null,
+      "scoreB": null,
+      "status": "pending",
+      "attA": {
+        "count": null,
+        "names": ""
+      },
+      "attB": {
+        "count": null,
+        "names": ""
+      },
+      "photos": [],
+      "note": ""
+    },
+    {
+      "id": "r5s2-F2",
+      "round": 5,
+      "session": 2,
+      "sport": "football",
+      "a": 4,
+      "b": 8,
+      "venue": "2/6号场地",
+      "date": "",
+      "scoreA": null,
+      "scoreB": null,
+      "status": "pending",
+      "attA": {
+        "count": null,
+        "names": ""
+      },
+      "attB": {
+        "count": null,
+        "names": ""
+      },
+      "photos": [],
+      "note": ""
+    },
+    {
+      "id": "r5s2-F3",
+      "round": 5,
+      "session": 2,
+      "sport": "football",
+      "a": 6,
+      "b": 14,
+      "venue": "3/7号场地",
+      "date": "",
+      "scoreA": null,
+      "scoreB": null,
+      "status": "pending",
+      "attA": {
+        "count": null,
+        "names": ""
+      },
+      "attB": {
+        "count": null,
+        "names": ""
+      },
+      "photos": [],
+      "note": ""
+    },
+    {
+      "id": "r5s2-F4",
+      "round": 5,
+      "session": 2,
+      "sport": "football",
+      "a": 10,
+      "b": 16,
+      "venue": "4/8号场地",
       "date": "",
       "scoreA": null,
       "scoreB": null,

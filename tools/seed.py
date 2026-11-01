@@ -1,21 +1,26 @@
-import json, os
+import json
+from collections import Counter
 
-# 按原对阵表录入：单数组班(1,3,5,7,9,11,13,15)踢足球；双数组班(2,4,6,8,10,12,14,16)打篮球
-FOOTBALL = {
-    1: [(1, 3, "1/5号场地"), (5, 7, "2/6号场地"), (9, 11, "3/7号场地"), (13, 15, "4/8号场地")],
-    2: [(1, 5, "2/6号场地"), (3, 9, "3/7号场地"), (7, 13, "4/8号场地"), (11, 15, "1/5号场地")],
-    3: [(1, 7, "3/7号场地"), (3, 13, "4/8号场地"), (5, 15, "1/5号场地"), (9, 11, "2/6号场地")],
-    4: [(1, 9, "4/8号场地"), (3, 15, "1/5号场地"), (5, 11, "2/6号场地"), (7, 13, "3/7号场地")],
-    5: [(1, 11, "1/5号场地"), (3, 7, "2/6号场地"), (5, 13, "3/7号场地"), (9, 15, "4/8号场地")],
+# 每个班都要参加足球和篮球：
+#   第一节：单数组班踢足球、双数组班打篮球（原对阵表）
+#   第二节：轮换 —— 单数组班打篮球、双数组班踢足球
+# 每轮 16 场（每节 8 场），5 轮共 80 场；每班足球 5 场 + 篮球 5 场 = 10 场。
+
+ROUND_PAIRS = {
+    1: {"odd": [(1, 3), (5, 7), (9, 11), (13, 15)], "even": [(2, 4), (6, 8), (10, 12), (14, 16)]},
+    2: {"odd": [(1, 5), (3, 9), (7, 13), (11, 15)], "even": [(2, 6), (4, 10), (8, 14), (12, 16)]},
+    3: {"odd": [(1, 7), (3, 13), (5, 15), (9, 11)], "even": [(2, 8), (4, 14), (6, 16), (10, 12)]},
+    4: {"odd": [(1, 9), (3, 15), (5, 11), (7, 13)], "even": [(2, 10), (4, 16), (6, 12), (8, 14)]},
+    5: {"odd": [(1, 11), (3, 7), (5, 13), (9, 15)], "even": [(2, 12), (4, 8), (6, 14), (10, 16)]},
 }
 
-BASKETBALL = {
-    1: [(2, 4, "5/1号场地"), (6, 8, "6/2号场地"), (10, 12, "7/3号场地"), (14, 16, "8/4号场地")],
-    2: [(2, 6, "6/2号场地"), (4, 10, "7/3号场地"), (8, 14, "8/4号场地"), (12, 16, "5/1号场地")],
-    3: [(2, 8, "7/3号场地"), (4, 14, "8/4号场地"), (6, 16, "5/1号场地"), (10, 12, "6/2号场地")],
-    4: [(2, 10, "8/4号场地"), (4, 16, "5/1号场地"), (6, 12, "6/2号场地"), (8, 14, "7/3号场地")],
-    5: [(2, 12, "5/1号场地"), (4, 8, "6/2号场地"), (6, 14, "7/3号场地"), (10, 16, "8/4号场地")],
-}
+# 场地按轮次轮转（与原表一致）：足球 1/5~4/8 号，篮球 5/1~8/4 号
+FB_VENUES = ["1/5号场地", "2/6号场地", "3/7号场地", "4/8号场地"]
+BK_VENUES = ["5/1号场地", "6/2号场地", "7/3号场地", "8/4号场地"]
+
+
+def venue(list_or_fb, i, rnd):
+    return list_or_fb[(i + rnd - 1) % 4]
 
 
 def blank_att():
@@ -23,31 +28,44 @@ def blank_att():
 
 
 matches = []
-for sport, table in (("football", FOOTBALL), ("basketball", BASKETBALL)):
-    prefix = "F" if sport == "football" else "B"
-    for rnd in sorted(table):
-        for idx, (a, b, venue) in enumerate(table[rnd], start=1):
-            matches.append({
-                "id": f"{prefix}{rnd}-{idx}",
-                "round": rnd,
-                "sport": sport,
-                "a": a,
-                "b": b,
-                "venue": venue,
-                "date": "",
-                "scoreA": None,
-                "scoreB": None,
-                "status": "pending",
-                "attA": blank_att(),
-                "attB": blank_att(),
-                "photos": [],
-                "note": "",
-            })
+for rnd in sorted(ROUND_PAIRS):
+    pairs = ROUND_PAIRS[rnd]
+    for session in (1, 2):
+        # 第一节：单数组足球 + 双数组篮球；第二节：单数组篮球 + 双数组足球
+        if session == 1:
+            plan = [("football", "odd"), ("basketball", "even")]
+        else:
+            plan = [("basketball", "odd"), ("football", "even")]
+        for sport, group in plan:
+            letter = "F" if sport == "football" else "B"
+            venues = FB_VENUES if sport == "football" else BK_VENUES
+            for i, (a, b) in enumerate(pairs[group]):
+                matches.append({
+                    "id": "r%ds%d-%s%d" % (rnd, session, letter, i + 1),
+                    "round": rnd,
+                    "session": session,
+                    "sport": sport,
+                    "a": a,
+                    "b": b,
+                    "venue": venue(venues, i, rnd),
+                    "date": "",
+                    "scoreA": None,
+                    "scoreB": None,
+                    "status": "pending",
+                    "attA": blank_att(),
+                    "attB": blank_att(),
+                    "photos": [],
+                    "note": "",
+                })
 
 data = {
-    "version": 1,
+    "version": 2,
     "title": "初一年级班级球类联赛",
-    "rounds": [{"round": i, "date": "", "label": f"第{i}轮"} for i in range(1, 6)],
+    "rounds": [{"round": i, "date": "", "label": "第%d轮" % i} for i in range(1, 6)],
+    "sessions": [
+        {"session": 1, "label": "第一节", "desc": "单数组班踢足球 · 双数组班打篮球"},
+        {"session": 2, "label": "第二节", "desc": "单数组班打篮球 · 双数组班踢足球"},
+    ],
     "schedulePhotos": [],
     "matches": matches,
 }
@@ -56,16 +74,14 @@ out = "/Users/zhangsanmao/WorkBuddy/2026-11-01-18-06-50/ball-league/data/matches
 with open(out, "w", encoding="utf-8") as f:
     json.dump(data, f, ensure_ascii=False, indent=2)
 
-fb = sum(1 for m in matches if m["sport"] == "football")
-bk = sum(1 for m in matches if m["sport"] == "basketball")
-print(f"总场次: {len(matches)} (足球 {fb} / 篮球 {bk})")
-from collections import Counter
+print("总场次:", len(matches),
+      "| 足球", sum(1 for m in matches if m["sport"] == "football"),
+      "| 篮球", sum(1 for m in matches if m["sport"] == "basketball"))
+
 for sport in ("football", "basketball"):
     cnt = Counter()
     for m in matches:
         if m["sport"] == sport:
             cnt[m["a"]] += 1
             cnt[m["b"]] += 1
-    print(sport, "每队场次:", sorted(cnt.items()))
-    pairs = Counter(tuple(sorted((m["a"], m["b"]))) for m in matches if m["sport"] == sport)
-    print(sport, "重复对阵:", [p for p, c in pairs.items() if c > 1])
+    print(sport, "参赛班:", len(cnt), "| 每班场次:", sorted(set(cnt.values())))
