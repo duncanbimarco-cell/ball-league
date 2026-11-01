@@ -18,6 +18,9 @@
   var SPORT_FILTER = 'all';
   var token = localStorage.getItem(TOKEN_KEY) || '';
   var isAdmin = localStorage.getItem(UNLOCK_KEY) === '1';
+  // 只读模式：链接带 ?readonly=1 时，隐藏录入入口、强制为观众
+  var READONLY = /^(1|true|yes)$/i.test(new URLSearchParams(location.search).get('readonly') || '');
+  if (READONLY) isAdmin = false;
   var pending = { matches: {}, rounds: null, schedulePhotos: null }; // 待写入的改动
   var lastSync = 0;
 
@@ -260,6 +263,10 @@
       rounds[r].forEach(function (m) { html += matchRowHTML(m); });
       html += '</div></div>';
     });
+    if (READONLY) {
+      html += '<div class="hint" style="text-align:center;padding:2px 0 10px">' +
+        '<a href="./" style="color:var(--muted);text-decoration:none">裁判 / 组委会入口 →</a></div>';
+    }
     return html;
   }
 
@@ -500,6 +507,13 @@
   function render() {
     if (!DATA) return;
     $('#appTitle').textContent = DATA.title || CFG.title || '班级球类联赛';
+    // 只读模式：隐藏「录入」页签，且不允许停留在该页
+    var adminTab = document.querySelector('.tab[data-view="admin"]');
+    if (adminTab) adminTab.style.display = READONLY ? 'none' : '';
+    if (READONLY && VIEW === 'admin') VIEW = 'schedule';
+    document.querySelectorAll('.tab').forEach(function (t) {
+      t.classList.toggle('active', t.dataset.view === VIEW);
+    });
     if (VIEW === 'schedule') app.innerHTML = scheduleHTML();
     else if (VIEW === 'standings') app.innerHTML = standingsHTML();
     else if (VIEW === 'attendance') app.innerHTML = attendanceHTML();
