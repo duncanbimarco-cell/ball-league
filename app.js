@@ -57,28 +57,49 @@
     return h;
   }
 
-  async function loadData() {
-    sync('加载中…');
-    var bases = [];
-    if (CONFIGURED) {
-      bases.push('https://raw.githubusercontent.com/' + OWNER + '/' + REPO + '/' + BRANCH + '/' + DATA_PATH);
-      bases.push('https://cdn.jsdelivr.net/gh/' + OWNER + '/' + REPO + '@' + BRANCH + '/' + DATA_PATH);
+  /* 带超时的 JSON 读取（网络被墙时不会一直卡住） */
+  async function fetchJSON(url, ms) {
+    var ctrl = typeof AbortController !== 'undefined' ? new AbortController() : null;
+    var timer = ctrl ? setTimeout(function () { ctrl.abort(); }, ms || 6000) : null;
+    try {
+      var r = await fetch(url, { cache: 'no-store', signal: ctrl ? ctrl.signal : undefined });
+      if (!r.ok) throw new Error('HTTP ' + r.status);
+      return await r.json();
+    } finally { if (timer) clearTimeout(timer); }
+  }
+
+  /* 第一步：读同源的 data/matches.json（一定拿得到，秒开） */
+  async function loadLocal() {
+    try {
+      var j = await fetchJSON(DATA_PATH + '?t=' + Date.now(), 6000);
+      if (j && j.matches) { DATA = j; lastSync = Date.now(); return true; }
+    } catch (e) { /* 往下走 */ }
+    if (!DATA) {
+      DATA = { version: 1, title: CFG.title || '班级球类联赛', rounds: [], schedulePhotos: [], matches: [] };
+      return false;
     }
-    bases.push(DATA_PATH);
+    return true;
+  }
+
+  /* 第二步：后台静默拉取最新（拿不到也不影响看） */
+  async function refreshRemote() {
+    if (!CONFIGURED) { sync('本地数据'); return false; }
+    var bases = [
+      'https://raw.githubusercontent.com/' + OWNER + '/' + REPO + '/' + BRANCH + '/' + DATA_PATH,
+      'https://cdn.jsdelivr.net/gh/' + OWNER + '/' + REPO + '@' + BRANCH + '/' + DATA_PATH
+    ];
     for (var i = 0; i < bases.length; i++) {
       try {
-        var r = await fetch(bases[i] + '?t=' + Date.now(), { cache: 'no-store' });
-        if (!r.ok) continue;
-        var j = await r.json();
-        if (!j || !j.matches) continue;
-        DATA = j;
-        lastSync = Date.now();
-        sync('已同步 ' + new Date().toTimeString().slice(0, 5));
-        return true;
+        var j = await fetchJSON(bases[i] + '?t=' + Date.now(), 5000);
+        if (j && j.matches) {
+          DATA = j;
+          lastSync = Date.now();
+          sync('已同步 ' + new Date().toTimeString().slice(0, 5));
+          return true;
+        }
       } catch (e) { /* 换下一个源 */ }
     }
-    DATA = { version: 1, title: CFG.title || '班级球类联赛', rounds: [], schedulePhotos: [], matches: [] };
-    sync('数据加载失败');
+    sync(DATA && DATA.matches && DATA.matches.length ? '本地数据 · 实时刷新未连上' : '数据加载失败');
     return false;
   }
 
@@ -117,7 +138,7 @@
       if (e.status === 409 || e.status === 422) {
         toast('远端有更新，正在合并重试…');
         try {
-          await loadData();
+          await refreshRemote();
           applyPending();
           DATA.updatedAt = new Date().toISOString();
           await ghPut(DATA_PATH, utf8ToB64(JSON.stringify(DATA, null, 2)), msg || '更新比赛数据');
@@ -567,7 +588,7 @@
     if (e.target.id === 'saveRounds') { saveRounds(); return; }
     if (e.target.id === 'schedPhotoBtn') { $('#schedPhoto').click(); return; }
     if (e.target.id === 'qrBtn') { showQR(); return; }
-    if (e.target.id === 'refreshBtn') { loadData().then(render).then(function () { toast('已刷新'); }); return; }
+    if (e.target.id === 'refreshBtn') { refreshRemote().then(function (ok) { render(); toast(ok ? '已刷新到最新' : '实时刷新未连上，显示的是本地数据'); }); return; }
     if (e.target.id === 'lockBtn') {
       localStorage.removeItem(UNLOCK_KEY);
       isAdmin = false; render(); toast('已退出录入');
@@ -707,9 +728,18 @@
   var urlToken = new URLSearchParams(location.search).get('token');
   if (urlToken && !token) { token = urlToken; localStorage.setItem(TOKEN_KEY, token); }
 
-  loadData().then(function () { render(); });
+  /* 启动：先本地秒开，再后台刷新 */
+  (async function boot() {
+    sync('加载中…');
+    await loadLocal();
+    render();
+    refreshRemote().then(function (ok) { if (ok) render(); });
+  })();
+
   setInterval(function () {
     if (document.hidden) return;
-    if (Date.now() - lastSync > 60000) loadData().then(render);
+    if (Date.now() - lastSync > 60000) {
+      refreshRemote().then(function (ok) { if (ok) render(); });
+    }
   }, 60000);
 })();
