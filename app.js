@@ -52,6 +52,12 @@
     }
     return btoa(bin);
   }
+  function b64ToUtf8(str) {
+    var bin = atob((str || '').replace(/\s/g, ''));
+    var bytes = new Uint8Array(bin.length);
+    for (var i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+    return new TextDecoder().decode(bytes);
+  }
   function ghHeaders() {
     var h = { 'Accept': 'application/vnd.github+json' };
     if (token) h['Authorization'] = 'Bearer ' + token;
@@ -104,10 +110,24 @@
     return false;
   }
 
+  /* 写入时从 GitHub API 取最新版本，绕过浏览器和镜像缓存 */
+  async function ghGet(path) {
+    var url = API + '/repos/' + OWNER + '/' + REPO + '/contents/' + path +
+      '?ref=' + encodeURIComponent(BRANCH) + '&t=' + Date.now() + '-' + Math.random();
+    var r = await fetch(url, { headers: ghHeaders(), cache: 'no-store' });
+    var j = await r.json().catch(function () { return {}; });
+    if (!r.ok) {
+      var err = new Error((j && j.message) || ('HTTP ' + r.status));
+      err.status = r.status;
+      throw err;
+    }
+    return j;
+  }
+
   async function ghPut(path, contentB64, message, sha) {
     if (sha === undefined) {
-      var m = await fetch(API + '/repos/' + OWNER + '/' + REPO + '/contents/' + path + '?ref=' + BRANCH, { headers: ghHeaders() });
-      sha = m.ok ? (await m.json()).sha : null;
+      try { sha = (await ghGet(path)).sha; }
+      catch (e) { if (e.status !== 404) throw e; sha = null; }
     }
     var body = { message: message, content: contentB64, branch: BRANCH };
     if (sha) body.sha = sha;
@@ -141,8 +161,9 @@
     if (!token) { lastSaveError = '没填 GitHub Token（到「录入」页填写）'; toast(lastSaveError); return false; }
     sync('保存中…');
     try {
+      var sha = await loadLatestForSave();
       DATA.updatedAt = new Date().toISOString();
-      await ghPut(DATA_PATH, utf8ToB64(JSON.stringify(DATA, null, 2)), msg || '更新比赛数据');
+      await ghPut(DATA_PATH, utf8ToB64(JSON.stringify(DATA, null, 2)), msg || '更新比赛数据', sha);
       pending = { matches: {}, rounds: null, schedulePhotos: null };
       lastSync = Date.now();
       sync('已保存 ' + new Date().toTimeString().slice(0, 5));
@@ -151,11 +172,11 @@
       if (e.status === 409 || e.status === 422) {
         toast('远端有更新，正在合并重试…');
         try {
-          await refreshRemote();
-          applyPending();
+          var latestSha = await loadLatestForSave();
           DATA.updatedAt = new Date().toISOString();
-          await ghPut(DATA_PATH, utf8ToB64(JSON.stringify(DATA, null, 2)), msg || '更新比赛数据');
+          await ghPut(DATA_PATH, utf8ToB64(JSON.stringify(DATA, null, 2)), msg || '更新比赛数据', latestSha);
           pending = { matches: {}, rounds: null, schedulePhotos: null };
+          lastSync = Date.now();
           sync('已保存 ' + new Date().toTimeString().slice(0, 5));
           return true;
         } catch (e2) { lastSaveError = e2.message; toast('保存失败：' + e2.message); sync('保存失败'); return false; }
@@ -170,6 +191,15 @@
       sync('保存失败');
       return false;
     }
+  }
+
+  async function loadLatestForSave() {
+    var latest = await ghGet(DATA_PATH);
+    var data = JSON.parse(b64ToUtf8(latest.content));
+    if (!data || !Array.isArray(data.matches)) throw new Error('GitHub 数据格式不正确');
+    DATA = data;
+    applyPending();
+    return latest.sha;
   }
 
   function applyPending() {
