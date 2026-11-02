@@ -23,6 +23,7 @@
   if (READONLY) isAdmin = false;
   var pending = { matches: {}, rounds: null, schedulePhotos: null }; // 待写入的改动
   var lastSync = 0;
+  var lastSaveError = '';
 
   var $ = function (s) { return document.querySelector(s); };
   var app = $('#app');
@@ -123,9 +124,21 @@
     return j;
   }
 
+  function showSheetError(msg) {
+    var body = $('#sheet').querySelector('.sheet-body') || $('#sheet');
+    if (!body) return;
+    var div = document.createElement('div');
+    div.className = 'warn';
+    div.style.marginBottom = '10px';
+    div.textContent = '保存失败：' + msg;
+    body.insertBefore(div, body.firstChild);
+    $('#sheet').scrollTop = 0;
+  }
+
   async function saveAll(msg) {
-    if (!CONFIGURED) { toast('未配置 GitHub 仓库，无法保存'); return false; }
-    if (!token) { toast('请先在「录入」页填写 GitHub Token'); return false; }
+    lastSaveError = '';
+    if (!CONFIGURED) { lastSaveError = '未配置 GitHub 仓库'; toast(lastSaveError); return false; }
+    if (!token) { lastSaveError = '没填 GitHub Token（到「录入」页填写）'; toast(lastSaveError); return false; }
     sync('保存中…');
     try {
       DATA.updatedAt = new Date().toISOString();
@@ -145,7 +158,13 @@
           pending = { matches: {}, rounds: null, schedulePhotos: null };
           sync('已保存 ' + new Date().toTimeString().slice(0, 5));
           return true;
-        } catch (e2) { toast('保存失败：' + e2.message); sync('保存失败'); return false; }
+        } catch (e2) { lastSaveError = e2.message; toast('保存失败：' + e2.message); sync('保存失败'); return false; }
+      }
+      lastSaveError = e.message + (e.status ? '（HTTP ' + e.status + '）' : '');
+      if (e.status === 401 || e.status === 403) {
+        lastSaveError += ' → Token 无效、过期或没有 Contents 写权限，请到「录入」页重新粘贴 Token';
+      } else if (!e.status) {
+        lastSaveError += ' → 连不上 GitHub（网络问题），换网络或稍后再试';
       }
       toast('保存失败：' + e.message);
       sync('保存失败');
@@ -441,6 +460,18 @@
     if (!pendings.length) html += '<div class="empty">全部比赛已录完 🎉</div>';
     html += '</div>';
 
+    html += '<div class="card"><div class="card-hd"><h2>GitHub Token</h2>' +
+      '<span class="sub">' + (token ? '已填写 ✅' : '未填写 ❌') + '</span></div><div class="sheet-body">' +
+      (token
+        ? '<div class="hint">已存在本机：' + esc(token.slice(0, 7)) + '••••••　<a href="https://github.com/settings/tokens" target="_blank" rel="noopener">GitHub 令牌管理</a></div>'
+        : '<div class="warn">没填 Token 就保存不了数据。<br>生成（勾 repo）：<a href="https://github.com/settings/tokens/new?description=ball-league&scopes=repo" target="_blank" rel="noopener">点这里一键打开</a>，拉到底 Generate token，复制后粘到下面。</div>') +
+      '<div style="height:8px"></div>' +
+      '<input type="password" id="tokenInput2" placeholder="ghp_… / github_pat_…" value="' + esc(token) + '">' +
+      '<div class="btn-row"><button class="btn ghost sm" id="saveTokenBtn">保存 Token</button>' +
+      '<button class="btn ghost sm" id="testConnBtn">🔌 测试能否写入</button></div>' +
+      '<div id="connResult" class="hint" style="margin-top:10px"></div>' +
+      '</div></div>';
+
     html += '<div class="card"><div class="card-hd"><h2>轮次时间（填了才会显示「本周」）</h2></div><div class="sheet-body">';
     var rounds = (DATA.rounds || []).slice().sort(function (a, b) { return a.round - b.round; });
     if (!rounds.length) {
@@ -487,6 +518,10 @@
 
     html += '<div class="hint" style="margin-bottom:10px">📍 ' + esc(m.venue || '未指定场地') +
       (m.date ? '　🕒 ' + esc(m.date) : '') + '　ID ' + esc(m.id) + '</div>';
+
+    if (isAdmin && !token) {
+      html += '<div class="warn">还没填 GitHub Token，现在保存不了。回到「录入」页把 Token 粘贴进去即可。</div><div style="height:10px"></div>';
+    }
 
     if (isAdmin) {
       html += '<div class="field"><label>比分（点加减，或选常见比分）</label>' +
@@ -620,6 +655,14 @@
     if (e.target.id === 'saveRounds') { saveRounds(); return; }
     if (e.target.id === 'schedPhotoBtn') { $('#schedPhoto').click(); return; }
     if (e.target.id === 'qrBtn') { showQR(); return; }
+    if (e.target.id === 'saveTokenBtn') {
+      var t2 = $('#tokenInput2').value.trim();
+      if (!t2) { toast('请粘贴 Token'); return; }
+      token = t2; localStorage.setItem(TOKEN_KEY, t2);
+      render(); toast('Token 已保存到本机');
+      return;
+    }
+    if (e.target.id === 'testConnBtn') { testConn(); return; }
     if (e.target.id === 'refreshBtn') { refreshRemote().then(function (ok) { render(); toast(ok ? '已刷新到最新' : '实时刷新未连上，显示的是本地数据'); }); return; }
     if (e.target.id === 'lockBtn') {
       localStorage.removeItem(UNLOCK_KEY);
@@ -676,7 +719,8 @@
     m.note = $('#note').value.trim();
     markPending('match', id, m);
     saveAll('录入比分 ' + teamName(m.a) + ' ' + sa + ':' + sb + ' ' + teamName(m.b)).then(function (ok) {
-      if (ok) { closeSheet(); render(); toast('已保存'); }
+      if (ok) { closeSheet(); render(); toast('已保存并同步'); }
+      else { showSheetError(lastSaveError || '未知原因'); }
     });
   }
   function clearScore() {
@@ -725,6 +769,32 @@
     if (u) { token = token || u; localStorage.setItem(TOKEN_KEY, token); history.replaceState(null, '', location.pathname); }
     render();
     toast('已进入录入模式');
+  }
+
+  async function testConn() {
+    var el = document.getElementById('connResult');
+    if (!el) return;
+    el.textContent = '正在测试…';
+    if (!token) { el.textContent = '❌ 还没填 Token，先粘到上面的输入框并点「保存 Token」'; return; }
+    try {
+      var r = await fetch(API + '/repos/' + OWNER + '/' + REPO + '/contents/' + DATA_PATH + '?ref=' + BRANCH, { headers: ghHeaders() });
+      var j = await r.json().catch(function () { return {}; });
+      if (r.ok) {
+        var scopes = '';
+        try { scopes = r.headers.get('x-oauth-scopes') || ''; } catch (e) { scopes = ''; }
+        var canWrite = !scopes || /repo|contents|public_repo/.test(scopes);
+        el.textContent = (canWrite ? '✅ 可以读写仓库，能保存数据。' : '⚠️ 能连上，但 Token 权限可能不足（当前：' + (scopes || '未知') + '），建议重新生成并勾选 repo。') +
+          (scopes ? '（Token 权限：' + scopes + '）' : '');
+      } else if (r.status === 401) {
+        el.textContent = '❌ Token 无效或已过期（HTTP 401）。重新生成一个粘贴进来。';
+      } else if (r.status === 403) {
+        el.textContent = '❌ 没有权限（HTTP 403）：' + (j.message || '') + '。Token 要勾 repo，且只能用于这个仓库。';
+      } else {
+        el.textContent = '❌ 失败 HTTP ' + r.status + '：' + (j.message || '');
+      }
+    } catch (e) {
+      el.textContent = '❌ 连不上 GitHub（' + e.message + '）。换网络或稍后再试；已录入的内容可以先记在纸上。';
+    }
   }
 
   function showQR() {
