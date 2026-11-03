@@ -12,6 +12,24 @@
 
   var TOKEN_KEY = 'bl_token_' + OWNER + '_' + REPO;
   var UNLOCK_KEY = 'bl_admin_' + OWNER + '_' + REPO;
+  var DRAFT_KEY = 'bl_drafts_' + OWNER + '_' + REPO;
+
+  /* 本机暂存：没有网络/没有 Token 时先记在手机里，之后再同步 */
+  var drafts = {};
+  try { drafts = JSON.parse(localStorage.getItem(DRAFT_KEY) || '{}') || {}; } catch (e) { drafts = {}; }
+  function saveDrafts() { try { localStorage.setItem(DRAFT_KEY, JSON.stringify(drafts)); } catch (e) { } }
+  function draftCount() { return Object.keys(drafts).length; }
+  function applyDrafts() {
+    if (!DATA) return;
+    (DATA.matches || []).forEach(function (m) {
+      var d = drafts[m.id];
+      if (!d) return;
+      ['scoreA', 'scoreB', 'status', 'attA', 'attB', 'note'].forEach(function (k) {
+        if (k in d) m[k] = d[k];
+      });
+      m._local = true;
+    });
+  }
 
   var DATA = null;          // 全量数据
   var VIEW = 'schedule';
@@ -24,6 +42,7 @@
   var pending = { matches: {}, rounds: null, schedulePhotos: null }; // 待写入的改动
   var lastSync = 0;
   var lastSaveError = '';
+  var lastSha = null;   // 最近一次已知的文件版本，读取失败时用来直接写入
 
   var $ = function (s) { return document.querySelector(s); };
   var app = $('#app');
@@ -121,6 +140,7 @@
       err.status = r.status;
       throw err;
     }
+    if (j && j.sha) lastSha = j.sha;
     return j;
   }
 
@@ -161,9 +181,18 @@
     if (!token) { lastSaveError = '没填 GitHub Token（到「录入」页填写）'; toast(lastSaveError); return false; }
     sync('保存中…');
     try {
-      var sha = await loadLatestForSave();
+      var sha;
+      try {
+        sha = await loadLatestForSave();
+      } catch (e0) {
+        // 读不到远端内容时，用上一次已知版本直接写入（否则一断网就完全存不了）
+        if (!lastSha) throw e0;
+        sha = lastSha;
+        toast('读取远端失败，直接尝试写入…');
+      }
       DATA.updatedAt = new Date().toISOString();
-      await ghPut(DATA_PATH, utf8ToB64(JSON.stringify(DATA, null, 2)), msg || '更新比赛数据', sha);
+      var j1 = await ghPut(DATA_PATH, utf8ToB64(JSON.stringify(DATA, null, 2)), msg || '更新比赛数据', sha);
+      if (j1 && j1.content && j1.content.sha) lastSha = j1.content.sha;
       pending = { matches: {}, rounds: null, schedulePhotos: null };
       lastSync = Date.now();
       sync('已保存 ' + new Date().toTimeString().slice(0, 5));
@@ -174,7 +203,8 @@
         try {
           var latestSha = await loadLatestForSave();
           DATA.updatedAt = new Date().toISOString();
-          await ghPut(DATA_PATH, utf8ToB64(JSON.stringify(DATA, null, 2)), msg || '更新比赛数据', latestSha);
+          var j2 = await ghPut(DATA_PATH, utf8ToB64(JSON.stringify(DATA, null, 2)), msg || '更新比赛数据', latestSha);
+          if (j2 && j2.content && j2.content.sha) lastSha = j2.content.sha;
           pending = { matches: {}, rounds: null, schedulePhotos: null };
           lastSync = Date.now();
           sync('已保存 ' + new Date().toTimeString().slice(0, 5));
@@ -372,7 +402,8 @@
       '<div class="row ' + (done ? (bWin ? 'win' : (aWin ? 'lose' : '')) : '') + '"><span class="cls">' + teamName(m.b) + '</span><span class="sc">' + (done ? m.scoreB : '-') + '</span></div>' +
       (meta.length ? '<div class="meta">' + meta.join(' ') + '</div>' : '') +
       '</div>' +
-      '<div class="right"><span class="badge ' + (done ? 'done' : 'pending') + '">' + (done ? '已结束' : '待战') + '</span></div>' +
+      '<div class="right"><span class="badge ' + (m._local ? '' : (done ? 'done' : 'pending')) + '">' +
+      (m._local ? '待同步' : (done ? '已结束' : '待战')) + '</span></div>' +
       '</div>';
   }
 
@@ -500,6 +531,16 @@
       '<div class="btn-row"><button class="btn ghost sm" id="saveTokenBtn">保存 Token</button>' +
       '<button class="btn ghost sm" id="testConnBtn">🔌 测试能否写入</button></div>' +
       '<div id="connResult" class="hint" style="margin-top:10px"></div>' +
+      '</div></div>';
+
+    var nDraft = draftCount();
+    html += '<div class="card"><div class="card-hd"><h2>本机暂存 / 诊断</h2>' +
+      '<span class="sub">' + (nDraft ? nDraft + ' 场待同步' : '无待同步') + '</span></div><div class="sheet-body">' +
+      '<div class="hint">比分可以先存在本机（标记为「待同步」），有网或有 Token 时再一键上传。比赛现场网络差也能正常录。</div>' +
+      '<div style="height:8px"></div>' +
+      '<div class="btn-row"><button class="btn ghost sm" id="syncDraftsBtn">⬆️ 同步暂存（' + nDraft + '）</button>' +
+      '<button class="btn ghost sm" id="diagBtn">🩺 运行诊断</button></div>' +
+      '<pre id="diagOut" class="hint" style="display:none;white-space:pre-wrap;word-break:break-all;background:#f7f8fa;border:1px solid var(--line);border-radius:10px;padding:10px;margin:10px 0 0;max-height:260px;overflow:auto"></pre>' +
       '</div></div>';
 
     html += '<div class="card"><div class="card-hd"><h2>轮次时间（填了才会显示「本周」）</h2></div><div class="sheet-body">';
@@ -693,6 +734,8 @@
       return;
     }
     if (e.target.id === 'testConnBtn') { testConn(); return; }
+    if (e.target.id === 'syncDraftsBtn') { syncDrafts(); return; }
+    if (e.target.id === 'diagBtn') { runDiag(); return; }
     if (e.target.id === 'refreshBtn') { refreshRemote().then(function (ok) { render(); toast(ok ? '已刷新到最新' : '实时刷新未连上，显示的是本地数据'); }); return; }
     if (e.target.id === 'lockBtn') {
       localStorage.removeItem(UNLOCK_KEY);
@@ -747,17 +790,47 @@
     m.attA = { count: $('#attA').value === '' ? null : Number($('#attA').value), names: $('#namesA').value.trim() };
     m.attB = { count: $('#attB').value === '' ? null : Number($('#attB').value), names: $('#namesB').value.trim() };
     m.note = $('#note').value.trim();
+    m._local = true;
+    stashDraft(m);
     markPending('match', id, m);
     saveAll('录入比分 ' + teamName(m.a) + ' ' + sa + ':' + sb + ' ' + teamName(m.b)).then(function (ok) {
-      if (ok) { closeSheet(); render(); toast('已保存并同步'); }
-      else { showSheetError(lastSaveError || '未知原因'); }
+      if (ok) { clearDraft(id); m._local = false; closeSheet(); render(); toast('已保存并同步'); }
+      else { closeSheet(); render(); toast('已存本机，可稍后「同步暂存」上传'); }
     });
+  }
+
+  function stashDraft(m) {
+    drafts[m.id] = {
+      scoreA: m.scoreA, scoreB: m.scoreB, status: m.status,
+      attA: m.attA, attB: m.attB, note: m.note, ts: Date.now()
+    };
+    saveDrafts();
+  }
+  function clearDraft(id) { delete drafts[id]; saveDrafts(); }
+
+  async function syncDrafts() {
+    var n = draftCount();
+    if (!n) { toast('没有待同步的记录'); return; }
+    if (!token) { toast('先在上面填好 Token 再同步'); return; }
+    applyDrafts();
+    var ok = await saveAll('同步本机暂存成绩（' + n + ' 场）');
+    if (ok) {
+      drafts = {}; saveDrafts();
+      (DATA.matches || []).forEach(function (m) { m._local = false; });
+      render(); toast('已全部同步 ' + n + ' 场');
+    } else {
+      toast('同步失败：' + lastSaveError);
+    }
   }
   function clearScore() {
     var id = $('#sheet').dataset.ctx, m = findMatch(id);
     m.scoreA = null; m.scoreB = null; m.status = 'pending';
+    m._local = true; stashDraft(m);
     markPending('match', id, m);
-    saveAll('清除成绩 ' + id).then(function (ok) { if (ok) { closeSheet(); render(); toast('已清除'); } });
+    saveAll('清除成绩 ' + id).then(function (ok) {
+      if (ok) { clearDraft(id); m._local = false; closeSheet(); render(); toast('已清除'); }
+      else { closeSheet(); render(); toast('已存本机，稍后同步'); }
+    });
   }
   function setPending() {
     var id = $('#sheet').dataset.ctx, m = findMatch(id);
@@ -789,9 +862,11 @@
     saveAll('更新轮次时间').then(function (ok) { if (ok) toast('轮次时间已保存'); });
   }
   function unlock() {
-    var code = $('#codeInput').value.trim();
-    var tk = $('#tokenInput').value.trim();
-    if (code !== String(CFG.adminCode)) { toast('口令不对'); return; }
+    var code = ($('#codeInput').value || '').trim();
+    // 全角数字/空格容错
+    code = code.replace(/[０-９]/g, function (c) { return String.fromCharCode(c.charCodeAt(0) - 65248); }).replace(/\s+/g, '');
+    var tk = ($('#tokenInput').value || '').trim();
+    if (code !== String(CFG.adminCode)) { toast('口令不对（默认 2026）'); return; }
     if (tk) { token = tk; localStorage.setItem(TOKEN_KEY, tk); }
     isAdmin = true;
     localStorage.setItem(UNLOCK_KEY, '1');
@@ -825,6 +900,45 @@
     } catch (e) {
       el.textContent = '❌ 连不上 GitHub（' + e.message + '）。换网络或稍后再试；已录入的内容可以先记在纸上。';
     }
+  }
+
+  async function runDiag() {
+    var out = document.getElementById('diagOut');
+    if (!out) return;
+    out.style.display = 'block';
+    out.textContent = '诊断中…（约 5 秒）';
+    var L = [];
+    L.push('时间 ' + new Date().toLocaleString());
+    L.push('页面 ' + location.href);
+    L.push('模式 ' + (READONLY ? '只读（不能录入！去掉 ?readonly=1 再试）' : '完整'));
+    L.push('在线 ' + (navigator.onLine ? '是' : '否'));
+    L.push('浏览器 ' + navigator.userAgent);
+    L.push('Token ' + (token ? ('已填 ' + token.length + ' 位（' + token.slice(0, 4) + '…）') : '未填'));
+    L.push('待同步 ' + draftCount() + ' 场');
+    L.push('仓库 ' + OWNER + '/' + REPO + '@' + BRANCH);
+    try {
+      var r0 = await fetchJSON(DATA_PATH + '?t=' + Date.now(), 6000);
+      L.push('① 读本站数据    成功（' + (r0.matches ? r0.matches.length : 0) + ' 场）');
+    } catch (e) { L.push('① 读本站数据    失败 ' + e.message); }
+    try {
+      var r = await fetch(API + '/repos/' + OWNER + '/' + REPO + '/contents/' + DATA_PATH + '?ref=' + BRANCH, { headers: ghHeaders() });
+      var tj = await r.json().catch(function () { return {}; });
+      L.push('② 连 api.github   HTTP ' + r.status + (r.ok ? '（通）' : '（' + (tj.message || '') + '）'));
+    } catch (e) {
+      L.push('② 连 api.github   失败 ' + e.message + ' → 这台设备访问不了 api.github.com');
+    }
+    if (!token) {
+      L.push('③ 写入测试       跳过（没填 Token）');
+    } else {
+      try {
+        await ghPut(DATA_PATH, utf8ToB64(JSON.stringify(DATA, null, 2)), '自检写入测试');
+        L.push('③ 写入测试       成功 ✅ 录入功能正常');
+      } catch (e) {
+        L.push('③ 写入测试       失败 HTTP ' + (e.status || '-') + ' / ' + e.message);
+      }
+    }
+    out.textContent = L.join('\n');
+    toast('诊断完成，把结果发我');
   }
 
   function showQR() {
@@ -864,14 +978,17 @@
   (async function boot() {
     sync('加载中…');
     await loadLocal();
+    applyDrafts();
     render();
-    refreshRemote().then(function (ok) { if (ok) render(); });
+    refreshRemote().then(function (ok) {
+      if (ok) { applyDrafts(); render(); }
+    });
   })();
 
   setInterval(function () {
     if (document.hidden) return;
     if (Date.now() - lastSync > 60000) {
-      refreshRemote().then(function (ok) { if (ok) render(); });
+      refreshRemote().then(function (ok) { if (ok) { applyDrafts(); render(); } });
     }
   }, 60000);
 })();
