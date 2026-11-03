@@ -75,9 +75,9 @@
       "b": 15,
       "venue": "2/6号场地",
       "date": "",
-      "scoreA": 20,
-      "scoreB": 15,
-      "status": "finished",
+      "scoreA": null,
+      "scoreB": null,
+      "status": "pending",
       "attA": {
         "count": null,
         "names": ""
@@ -87,7 +87,8 @@
         "names": ""
       },
       "photos": [],
-      "note": ""
+      "note": "",
+      "_local": true
     },
     {
       "id": "r1s1-F3",
@@ -1884,5 +1885,5 @@
       "note": ""
     }
   ],
-  "updatedAt": "2026-11-03T10:15:00.752Z"
+  "updatedAt": "2026-11-03T10:15:05.362Z"
 }
