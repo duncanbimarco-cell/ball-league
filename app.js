@@ -18,7 +18,20 @@
   var drafts = {};
   try { drafts = JSON.parse(localStorage.getItem(DRAFT_KEY) || '{}') || {}; } catch (e) { drafts = {}; }
   function saveDrafts() { try { localStorage.setItem(DRAFT_KEY, JSON.stringify(drafts)); } catch (e) { } }
-  function draftCount() { return Object.keys(drafts).length; }
+  function draftCount() {
+    return Object.keys(drafts).filter(function (id) { return !drafts[id].syncedAt; }).length;
+  }
+  /* 远端确认到这次写入后，才丢弃本机覆盖，避免被 Pages 旧缓存"改回去" */
+  function pruneDrafts() {
+    if (!DATA || !DATA.updatedAt) return;
+    var ru = new Date(DATA.updatedAt).getTime() || 0;
+    var changed = false;
+    Object.keys(drafts).forEach(function (id) {
+      var d = drafts[id];
+      if (d && d.syncedAt && ru >= d.syncedAt) { delete drafts[id]; changed = true; }
+    });
+    if (changed) saveDrafts();
+  }
   function applyDrafts() {
     if (!DATA) return;
     (DATA.matches || []).forEach(function (m) {
@@ -27,7 +40,7 @@
       ['scoreA', 'scoreB', 'status', 'attA', 'attB', 'note'].forEach(function (k) {
         if (k in d) m[k] = d[k];
       });
-      m._local = true;
+      m._local = !d.syncedAt;
     });
   }
 
@@ -578,6 +591,14 @@
     return html;
   }
 
+  /* 按项目给不同的快捷比分，避免足球比赛误点 20:15 */
+  function quickScores(sport) {
+    if (sport === 'football') {
+      return [['0:0', 0, 0], ['1:0', 1, 0], ['2:0', 2, 0], ['2:1', 2, 1], ['3:0', 3, 0], ['3:2', 3, 2], ['4:2', 4, 2], ['5:3', 5, 3]];
+    }
+    return [['10:8', 10, 8], ['15:12', 15, 12], ['20:15', 20, 15], ['25:20', 25, 20], ['30:22', 30, 22], ['40:35', 40, 35], ['0:0', 0, 0]];
+  }
+
   /* ---------- 比赛详情弹层 ---------- */
   function openMatch(id) {
     var m = (DATA.matches || []).filter(function (x) { return x.id === id; })[0];
@@ -604,7 +625,7 @@
         '<div class="side"><div class="cls">' + teamName(m.b) + '</div><div class="stepper">' +
         '<button data-score="b" data-d="-1">−</button><span class="val" id="scoreB">' + (m.scoreB == null ? 0 : m.scoreB) + '</span>' +
         '<button data-score="b" data-d="1">+</button></div></div></div>' +
-        '<div class="quick">' + [['0:0', 0, 0], ['1:0', 1, 0], ['2:0', 2, 0], ['2:1', 2, 1], ['3:0', 3, 0], ['3:2', 3, 2], ['20:15', 20, 15], ['30:20', 30, 20]]
+        '<div class="quick">' + quickScores(m.sport)
           .map(function (q) { return '<button data-quick="' + q[1] + ',' + q[2] + '">' + q[0] + '</button>'; }).join('') + '</div></div>';
 
       html += '<div class="field"><label>考勤：到场人数与名单</label>' +
@@ -794,15 +815,21 @@
     stashDraft(m);
     markPending('match', id, m);
     saveAll('录入比分 ' + teamName(m.a) + ' ' + sa + ':' + sb + ' ' + teamName(m.b)).then(function (ok) {
-      if (ok) { clearDraft(id); m._local = false; closeSheet(); render(); toast('已保存并同步'); }
+      if (ok) {
+        stashDraft(m, true); m._local = false; closeSheet(); render();
+        toast('已保存：' + teamName(m.a) + ' ' + sa + ':' + sb + ' ' + teamName(m.b));
+      }
       else { closeSheet(); render(); toast('已存本机，可稍后「同步暂存」上传'); }
     });
   }
 
-  function stashDraft(m) {
+  function stashDraft(m, synced) {
+    var prev = drafts[m.id] || {};
     drafts[m.id] = {
       scoreA: m.scoreA, scoreB: m.scoreB, status: m.status,
-      attA: m.attA, attB: m.attB, note: m.note, ts: Date.now()
+      attA: m.attA, attB: m.attB, note: m.note,
+      ts: prev.ts || Date.now(),
+      syncedAt: synced ? Date.now() : 0
     };
     saveDrafts();
   }
@@ -815,7 +842,8 @@
     applyDrafts();
     var ok = await saveAll('同步本机暂存成绩（' + n + ' 场）');
     if (ok) {
-      drafts = {}; saveDrafts();
+      Object.keys(drafts).forEach(function (id) { drafts[id].syncedAt = drafts[id].syncedAt || Date.now(); });
+      saveDrafts();
       (DATA.matches || []).forEach(function (m) { m._local = false; });
       render(); toast('已全部同步 ' + n + ' 场');
     } else {
@@ -828,7 +856,7 @@
     m._local = true; stashDraft(m);
     markPending('match', id, m);
     saveAll('清除成绩 ' + id).then(function (ok) {
-      if (ok) { clearDraft(id); m._local = false; closeSheet(); render(); toast('已清除'); }
+      if (ok) { stashDraft(m, true); m._local = false; closeSheet(); render(); toast('已清除'); }
       else { closeSheet(); render(); toast('已存本机，稍后同步'); }
     });
   }
@@ -978,17 +1006,17 @@
   (async function boot() {
     sync('加载中…');
     await loadLocal();
-    applyDrafts();
+    pruneDrafts(); applyDrafts();
     render();
     refreshRemote().then(function (ok) {
-      if (ok) { applyDrafts(); render(); }
+      if (ok) { pruneDrafts(); applyDrafts(); render(); }
     });
   })();
 
   setInterval(function () {
     if (document.hidden) return;
     if (Date.now() - lastSync > 60000) {
-      refreshRemote().then(function (ok) { if (ok) { applyDrafts(); render(); } });
+      refreshRemote().then(function (ok) { if (ok) { pruneDrafts(); applyDrafts(); render(); } });
     }
   }, 60000);
 })();
